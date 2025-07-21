@@ -44,7 +44,7 @@ const Toolbar = ({ operations, setViewMode, viewMode, rowSelectionModel }) => {
       {confirmOpen && <UploadConfirm onClose={handleConfirmClose} files={files} onUpload={handleUpload} />}
     </div>
     <div className="flex items-center">
-      {rowSelectionModel.ids.size > 0 ? (rowSelectionModel.ids.size + ' selecionado') : ''}
+      {rowSelectionModel.length > 0 ? (rowSelectionModel.length + ' selecionado') : ''}
       <ToggleViewMode setViewMode={setViewMode} viewMode={viewMode} />
     </div>
   </div>);

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import getFileIcon from "../helpers/fileIcon";
 
-import { DataGrid } from '@mui/x-data-grid';
+import { DataGridPremium } from '@mui/x-data-grid-premium';
 import formatFileSize from "../helpers/formatFileSize";
 import ContextMenu from "./ContextMenu";
 import { Box } from "@mui/material";
@@ -60,7 +60,7 @@ export const TableView = ({
 
   return (<>
     <Box sx={{ width: '100%' }} >
-      <DataGrid
+      <DataGridPremium
         density="compact"
         columns={columns}
         rows={files}

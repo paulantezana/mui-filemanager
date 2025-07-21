@@ -66,10 +66,7 @@ const FileManager = ({
   const [isFullPreviewOpen, setIsFullPreviewOpen] = useState(false);
   const [viewMode, setViewMode] = useState('table');
 
-  const [rowSelectionModel, setRowSelectionModel] = useState({
-    type: 'include',
-    ids: new Set(),
-  });
+  const [rowSelectionModel, setRowSelectionModel] = useState([]);
 
   const handleSearch = (term) => {
     setSearchTerm(term);
