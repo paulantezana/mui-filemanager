@@ -65,6 +65,15 @@ export const TableView = ({
         columns={columns}
         rows={files}
 
+        // Layout
+        rowHeight={25}
+        columnHeaderHeight={32}
+        sx={{
+          '.MuiDataGrid-footerContainer': {
+            minHeight: '25px',
+          }
+        }}
+
         onRowDoubleClick={(params) => onDoubleClick(params.row)}
         onRowClick={(params) => onClick(params.row)}
         slotProps={{

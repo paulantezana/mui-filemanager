@@ -3,7 +3,7 @@ import FilePreview from "./FilePreview";
 
 const FileFullPreview = ({ file, onClose, operations, onDownload }) => {
   const loadFile = async (file) => {
-    const blob = await operations.load(file.path);
+    const blob = await operations.load(file);
     return blob;
   }
 

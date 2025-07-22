@@ -26,7 +26,7 @@ const Toolbar = ({ operations, setViewMode, viewMode, rowSelectionModel }) => {
   };
 
   const handleUpload = async (file) => {
-    return await operations.create({ type: 'file', data: file, path: '' });
+    return await operations.create({ type: 'file', file, path: '' });
   }
 
   return (<div className="flex justify-between items-center">

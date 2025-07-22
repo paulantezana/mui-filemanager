@@ -74,13 +74,15 @@ export const FileGridView = ({
 
   const handleCheked = (event, file) => {
     const checked = event.target.checked;
-    const ids = new Set(rowSelectionModel.ids);
+    let ids = [...rowSelectionModel];
     if (checked) {
-      ids.add(file.id);
+      if (!ids.includes(file.id)) {
+        ids.push(file.id);
+      }
     } else {
-      ids.delete(file.id);
+      ids = ids.filter(id => id !== file.id);
     }
-    setRowSelectionModel({ ...rowSelectionModel, ids });
+    setRowSelectionModel(ids);
   }
 
   return (<>
@@ -94,7 +96,7 @@ export const FileGridView = ({
           onClick={onClick} 
           onContextMenu={handleContextMenu} 
           onDoubleClick={onDoubleClick} 
-          checked={rowSelectionModel.ids.has(file.id)}
+          checked={rowSelectionModel.includes(file.id)}
         />
       ))}
     </div>

@@ -38,6 +38,8 @@ const useFileManager = ({ operations }) => {
     }
   }, [operations.list]);
 
+  console.log({ currentItems }, '_CURRENT_ITEMS_');
+
   return {
     currentItems,
     pathHistory,
@@ -86,9 +88,18 @@ const FileManager = ({
     setSelectedItem(null);
   };
 
+  // Select
   const handleFileClick = (file) => {
     if (file.type === 'file') {
       setSelectedItem(file);
+      return;
+    }
+  };
+
+  // Open
+  const handleFileDoubleClick = (file) => {
+    if (file.type === 'file') {
+      handleFullScreen(file);
       return;
     }
 
@@ -102,7 +113,7 @@ const FileManager = ({
     setPathHistory(prev => [...prev, { name: file.name, data: file.children }]);
     setCurrentItems(file.children);
     setSelectedItem(null);
-  };
+  }
 
   // Función para manejar doble click - abrir preview completo
   const handleFullScreen = (file) => {
@@ -135,7 +146,7 @@ const FileManager = ({
   };
 
   const handleDownload = async (file) => {
-    const blob = await operations.load(file.path);
+    const blob = await operations.load(file);
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -145,7 +156,7 @@ const FileManager = ({
   }
 
   const handleDelete = async (file) => {
-    const response = await operations.delete(file.path);
+    const response = await operations.delete(file);
   }
 
   const onClickMenu = async (key, file) => {
@@ -159,12 +170,12 @@ const FileManager = ({
   }
 
   return (
-    <Box sx={{ flexGrow: 1 }}>
+    <div>
       <Grid container spacing={2}>
-        <Grid size={{ xs: 6, md: 8, lg: 9 }}>
+        <Grid item xs={6} md={8} lg={9}>
           <div>
             <Toolbar operations={operations} rowSelectionModel={rowSelectionModel} setViewMode={setViewMode} viewMode={viewMode} />
-            <div className="flex justify-between items-center" style={{ padding: '6px 0' }}>
+            <div className="flex justify-between items-center" style={{ padding: '4px 0' }}>
               <Breadcrumb pathHistory={pathHistory} onNavigate={navigateToPath} />
               <Search onSearch={handleSearch} searchTerm={searchTerm} />
             </div>
@@ -178,7 +189,7 @@ const FileManager = ({
             <PanelBody
               currentItems={currentItems}
               onClick={handleFileClick}
-              onDoubleClick={handleFullScreen}
+              onDoubleClick={handleFileDoubleClick}
               onClickMenu={onClickMenu}
               viewMode={viewMode}
               rowSelectionModel={rowSelectionModel}
@@ -186,7 +197,7 @@ const FileManager = ({
             />
           </div>
         </Grid>
-        <Grid size={{ xs: 6, md: 4, lg: 3 }}>
+        <Grid item xs={6} md={4} lg={3}>
           {selectedItem && <PanelPreview selectedFile={selectedItem} onFullScreen={handleFullScreen} onDownload={handleDownload} operations={operations} />}
         </Grid>
       </Grid>
@@ -197,7 +208,7 @@ const FileManager = ({
           operations={operations}
         />
       )}
-    </Box>
+    </div>
   );
 };
 

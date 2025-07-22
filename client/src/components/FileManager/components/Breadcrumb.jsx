@@ -5,6 +5,7 @@ const Breadcrumb = ({ pathHistory, onNavigate }) => {
   return (
     <Breadcrumbs 
       separator={<NavigateNext fontSize="small" />}
+      sx={{ position: 'static' }}
     >
       {pathHistory.map((path, index) => {
         const isLast = index === pathHistory.length - 1;

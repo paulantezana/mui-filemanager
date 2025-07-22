@@ -10,7 +10,7 @@ const PanelPreview = ({ selectedFile, operations, onFullScreen, onDownload }) =>
   if (!selectedFile) return null
 
   const loadFile = async (file) => {
-    const blob = await operations.load(file.path);
+    const blob = await operations.load(file);
     return blob;
   }
 
@@ -18,7 +18,7 @@ const PanelPreview = ({ selectedFile, operations, onFullScreen, onDownload }) =>
     <div>
       <div className="flex items-center gap-1">
         {getFileIcon(selectedFile.type, selectedFile.name)}
-        <h3 className="font-semibold">{selectedFile.name}</h3>
+        <div className="font-semibold">{selectedFile.name}</div>
       </div>
 
       <FilePreview file={selectedFile} loadFile={loadFile} onDownload={onDownload} />
@@ -31,7 +31,7 @@ const PanelPreview = ({ selectedFile, operations, onFullScreen, onDownload }) =>
           <strong>Tamaño:</strong> {formatFileSize(selectedFile.size)}
         </div>
         <div>
-          <strong>Modificado:</strong> {selectedFile.updatedAt.toLocaleString()}
+          <strong>Modificado:</strong> {selectedFile.updatedAt?.toLocaleString()}
         </div>
       </div>
 
