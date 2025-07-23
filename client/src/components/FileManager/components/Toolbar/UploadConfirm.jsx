@@ -24,7 +24,7 @@ const Item = ({ item, onDelete, onRetry, index }) => {
     <div className={`fm-file-item ${item.status}`}>
       <div className="fm-file-info flex justify-between items-center gap-3">
         <div className="flex items-center">
-          <div className="fm-file-icon"title={item.message}>{statusIcon}</div>
+          <div className="fm-file-icon" title={item.message}>{statusIcon}</div>
           <div className="fm-file-name">{item.file.name}</div>
         </div>
         <div className="fm-file-size"><small>{formatFileSize(item.file.size)}</small></div>
@@ -90,53 +90,70 @@ const UploadConfirm = ({ onClose, onUpload, files = [], parallel = true }) => {
   }, [currentFiles, processUploads]);
 
   const handleRetry = useCallback((index) => processUploads([{ originalIndex: index }]), [processUploads]);
-  const handleDelete = useCallback((index) => dispatch({ type: 'REMOVE', index }), []);
+  const handleDelete = useCallback((index) => {
+    if (currentFiles.length === 1) {
+      onClose(false);
+    } else {
+      dispatch({ type: 'REMOVE', index });
+    }
+  }, [currentFiles.length, onClose]);
+
   const handleClose = useCallback(() => {
     state.current.abortController?.abort();
     onClose(false);
   }, [onClose]);
 
   const {
+    statusCounts,
     isUploading,
     allUploaded,
     hasErrors,
     hasPending,
   } = useMemo(() => {
-    const isUploading = state.current.uploading;
-    const allUploaded = currentFiles.length > 0 && currentFiles.every(f => f.status === 'uploaded');
-    const hasErrors = currentFiles.some(f => f.status === 'error');
-    const hasPending = currentFiles.some(f => f.status === 'pending');
-    return { isUploading, allUploaded, hasErrors, hasPending };
+    const counts = { uploaded: 0, error: 0, pending: 0, uploading: 0 };
+    for (const file of currentFiles) {
+      counts[file.status] = (counts[file.status] || 0) + 1;
+    }
+    const total = currentFiles.length;
+    return {
+      statusCounts: counts,
+      isUploading: state.current.uploading,
+      allUploaded: total > 0 && counts.uploaded === total,
+      hasErrors: counts.error > 0,
+      hasPending: counts.pending > 0,
+    };
   }, [currentFiles]);
 
   const mainAction = useMemo(() => {
-    if (isUploading) return { label: 'Subiendo...', action: null, disabled: true };
-    if (allUploaded) return { label: 'Aceptar', action: () => onClose(true) };
-    if (hasErrors) return { label: 'Reintentar', action: startUpload };
-    if (hasPending) return { label: 'Confirmar subida', action: startUpload };
+    if (isUploading) return { label: "Subiendo...", action: null, disabled: true };
+    if (allUploaded) return { label: "Aceptar", action: () => onClose(true) };
+    if (hasErrors || hasPending) {
+      return {
+        label: hasErrors ? "Reintentar" : "Confirmar subida",
+        action: startUpload,
+      };
+    }
     return null;
   }, [isUploading, allUploaded, hasErrors, hasPending, onClose, startUpload]);
 
-  const getTitle = () =>
-    allUploaded ? 'Archivos subidos exitosamente'
-      : hasErrors ? 'Algunos archivos fallaron'
-        : 'Confirmar subida de archivos';
+  const getTitle = () => {
+    if (allUploaded) return "Archivos subidos exitosamente";
+    if (hasErrors) return "Algunos archivos fallaron";
+    return "Confirmar subida de archivos";
+  };
 
   const getSubtitle = () => {
     const total = currentFiles.length;
-    const uploaded = currentFiles.filter(f => f.status === 'uploaded').length;
-    const pending = currentFiles.filter(f => f.status === 'pending').length;
-    const errors = currentFiles.filter(f => f.status === 'error').length;
-    const uploading = currentFiles.filter(f => f.status === 'uploading').length;
+    const { uploaded = 0, pending = 0, uploading = 0, error = 0 } = statusCounts;
 
-    let parts = [];
-    if (total > 0) parts.push(`Total ${total} archivo${total > 1 ? 's' : ''}`);
-    if (uploaded > 0) parts.push(`subido${uploaded > 1 ? 's' : ''} ${uploaded}`);
-    if (pending > 0) parts.push(`por subir ${pending}`);
-    if (uploading > 0) parts.push(`subiendo ${uploading}`);
-    if (errors > 0) parts.push(`con error${errors > 1 ? 'es' : ''} ${errors}`);
+    const parts = [];
+    if (total > 0) parts.push(`Total ${total} archivo${total > 1 ? "s" : ""}`);
+    if (uploaded) parts.push(`subido${uploaded > 1 ? "s" : ""} ${uploaded}`);
+    if (pending) parts.push(`por subir ${pending}`);
+    if (uploading) parts.push(`subiendo ${uploading}`);
+    if (error) parts.push(`con error${error > 1 ? "es" : ""} ${error}`);
 
-    return parts.join(', ') + '.';
+    return parts.join(", ") + ".";
   };
 
   return (

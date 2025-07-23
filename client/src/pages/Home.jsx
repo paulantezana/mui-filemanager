@@ -15,20 +15,20 @@ const Home = () => {
     info: (path) => {
 
     },
-    create: async ({ type, data, path }) => {
+    create: async ({ type, file, path }) => {
       if (type === 'folder') {
         return await fileService.createFolder(path);
       } else if (type === 'file') {
-        return await fileService.uploadFile(data, path);
+        return await fileService.uploadFile(file, path);
       }
     },
     update: (path) => {
 
     },
-    delete:  async (path) => {
+    delete: async ({ path }) => {
       return await fileService.deletePath(path);
     },
-    load: async (path) => {
+    load: async ({ path }) => {
       return await fileService.downloadFile(path);
     },
   }

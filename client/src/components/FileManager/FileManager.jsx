@@ -14,6 +14,8 @@ const useFileManager = ({ operations }) => {
   const [currentItems, setCurrentItems] = useState([]);
   const [dataSource, setDataSource] = useState([]);
   const [pathHistory, setPathHistory] = useState([]);
+  const [refreshData, setRefreshData] = useState(false);
+  // const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const setNormalized = (data) => {
@@ -25,7 +27,8 @@ const useFileManager = ({ operations }) => {
     }
 
     const setDataFunction = async (list) => {
-      const files = await list();
+      const path = pathHistory.map(item => item.name).join('/');
+      const files = await list(path);
       setNormalized(files);
     }
 
@@ -36,15 +39,19 @@ const useFileManager = ({ operations }) => {
     if (typeof operations.list === 'function') {
       setDataFunction(operations.list);
     }
-  }, [operations.list]);
+  }, [operations.list, refreshData]);
 
-  console.log({ currentItems }, '_CURRENT_ITEMS_');
+  const refresh = () => {
+    setRefreshData(prev => !prev);
+  };
 
   return {
     currentItems,
     pathHistory,
+    dataSource,
     setCurrentItems,
     setPathHistory,
+    refresh,
   }
 }
 
@@ -58,7 +65,8 @@ const FileManager = ({
     currentItems,
     pathHistory,
     setCurrentItems,
-    setPathHistory
+    setPathHistory,
+    refresh
   } = useFileManager({ operations });
 
   const [selectedItem, setSelectedItem] = useState(null);
