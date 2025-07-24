@@ -7,7 +7,14 @@ import { Button, IconButton } from "@mui/material";
 import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
 
-const Toolbar = ({ operations, setViewMode, viewMode, rowSelectionModel }) => {
+const Toolbar = ({
+  operations,
+  refresh,
+  setViewMode,
+  viewMode,
+  rowSelectionModel,
+  pathHistory
+}) => {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [files, setFiles] = useState([]);
 
@@ -18,7 +25,7 @@ const Toolbar = ({ operations, setViewMode, viewMode, rowSelectionModel }) => {
 
   const handleConfirmClose = (accepted) => {
     if (accepted) {
-
+      refresh();
     }
 
     setFiles([]);
@@ -26,7 +33,8 @@ const Toolbar = ({ operations, setViewMode, viewMode, rowSelectionModel }) => {
   };
 
   const handleUpload = async (file) => {
-    return await operations.create({ type: 'file', file, path: '' });
+    const path = '/' + pathHistory.filter(item => item.name.toLocaleUpperCase() !== 'INICIO').map(item => item.name).join('/');
+    return await operations.create({ type: 'file', file, path });
   }
 
   return (<div className="flex justify-between items-center">

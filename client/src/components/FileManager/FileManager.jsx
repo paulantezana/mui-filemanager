@@ -13,23 +13,29 @@ import { Box, Grid } from "@mui/material";
 const useFileManager = ({ operations }) => {
   const [currentItems, setCurrentItems] = useState([]);
   const [dataSource, setDataSource] = useState([]);
-  const [pathHistory, setPathHistory] = useState([]);
+  const [pathHistory, setPathHistory] = useState([{ name: 'Inicio', data: [] }]);
   const [refreshData, setRefreshData] = useState(false);
-  // const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState(false);
 
   useEffect(() => {
     const setNormalized = (data) => {
       if (data && data.length > 0) {
-        setDataSource(data);
         setCurrentItems(data);
-        setPathHistory([{ name: 'Inicio', data: data }]);
       }
     }
 
     const setDataFunction = async (list) => {
-      const path = pathHistory.map(item => item.name).join('/');
-      const files = await list(path);
-      setNormalized(files);
+      try {
+        setLoading(true);
+        const path = '/' + pathHistory.filter(item => item.name.toLocaleUpperCase() !== 'INICIO').map(item => item.name).join('/');
+        const files = await list(path);
+        setNormalized(files);
+      } catch (ex) {
+        setErrors(ex.message);
+      } finally {
+        setLoading(false);
+      }
     }
 
     if (Array.isArray(operations.list)) {
@@ -39,13 +45,15 @@ const useFileManager = ({ operations }) => {
     if (typeof operations.list === 'function') {
       setDataFunction(operations.list);
     }
-  }, [operations.list, refreshData]);
+  }, [operations.list, refreshData, pathHistory.length]);
 
   const refresh = () => {
     setRefreshData(prev => !prev);
   };
 
   return {
+    loading,
+    errors,
     currentItems,
     pathHistory,
     dataSource,
@@ -182,7 +190,14 @@ const FileManager = ({
       <Grid container spacing={2}>
         <Grid item xs={6} md={8} lg={9}>
           <div>
-            <Toolbar operations={operations} rowSelectionModel={rowSelectionModel} setViewMode={setViewMode} viewMode={viewMode} />
+            <Toolbar
+              operations={operations}
+              refresh={refresh}
+              rowSelectionModel={rowSelectionModel}
+              setViewMode={setViewMode}
+              viewMode={viewMode}
+              pathHistory={pathHistory}
+            />
             <div className="flex justify-between items-center" style={{ padding: '4px 0' }}>
               <Breadcrumb pathHistory={pathHistory} onNavigate={navigateToPath} />
               <Search onSearch={handleSearch} searchTerm={searchTerm} />
