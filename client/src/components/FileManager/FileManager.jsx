@@ -185,7 +185,7 @@ const FileManager = ({
   const RightPanel = (<PanelPreview selectedFile={selectedItem} onFullScreen={handleFullScreen} onDownload={handleDownload} operations={operations} />);
 
   return (
-    <div style={{ height: 'calc(100vh - 80px)' }}>
+    <div className="h-full">
       <VerticalSplitter
         leftContent={LeftPanel}
         rightContent={RightPanel}
