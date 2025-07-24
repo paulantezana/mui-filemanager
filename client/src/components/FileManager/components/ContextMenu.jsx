@@ -8,7 +8,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
 
 const menuItems = [
-  { key: 'edit', label: 'Modificar', icon: <EditIcon fontSize="small" /> },
+  // { key: 'edit', label: 'Modificar', icon: <EditIcon fontSize="small" /> },
   { key: 'delete', label: 'Eliminar', icon: <DeleteIcon fontSize="small" /> },
   { key: 'download', label: 'Descargar', icon: <DownloadIcon fontSize="small" /> },
 ];

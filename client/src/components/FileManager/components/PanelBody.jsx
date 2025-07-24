@@ -2,9 +2,14 @@ import FileGridView from "./FileGridView";
 import TableView from "./TableView";
 
 const PanelBody = ({
-  currentItems, onClick, onDoubleClick, onClickMenu, viewMode,
+  currentItems,
+  onClick,
+  onDoubleClick,
+  onClickMenu,
+  viewMode,
   rowSelectionModel,
   setRowSelectionModel,
+  customColumns,
 }) => {
   return (
     <div className="panel-body">
@@ -15,6 +20,7 @@ const PanelBody = ({
         onClickMenu={onClickMenu}
         rowSelectionModel={rowSelectionModel}
         setRowSelectionModel={setRowSelectionModel}
+        customColumns={customColumns}
       />}
       {viewMode === 'grid' && <FileGridView
         files={currentItems}
@@ -23,6 +29,7 @@ const PanelBody = ({
         onClickMenu={onClickMenu}
         rowSelectionModel={rowSelectionModel}
         setRowSelectionModel={setRowSelectionModel}
+        customColumns={customColumns}
       />}
     </div>
   );

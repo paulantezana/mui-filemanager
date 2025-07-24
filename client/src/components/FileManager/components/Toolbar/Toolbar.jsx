@@ -2,7 +2,7 @@ import { useState } from "react";
 import ToggleViewMode from "./ToggleViewMode";
 import UploadButton from "./UploadButton";
 import UploadConfirm from "./UploadConfirm";
-import { Button, IconButton } from "@mui/material";
+import { Button } from "@mui/material";
 
 import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
@@ -13,7 +13,9 @@ const Toolbar = ({
   setViewMode,
   viewMode,
   rowSelectionModel,
-  pathHistory
+  pathHistory,
+  onDelete,
+  onDownload
 }) => {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [files, setFiles] = useState([]);
@@ -24,10 +26,7 @@ const Toolbar = ({
   };
 
   const handleConfirmClose = (accepted) => {
-    if (accepted) {
-      refresh();
-    }
-
+    refresh();
     setFiles([]);
     setConfirmOpen(false);
   };
@@ -43,10 +42,10 @@ const Toolbar = ({
         onFileChange={onFileChange}
         multiple={true}
       />
-      <Button size="small" startIcon={<DeleteIcon />}>
+      <Button size="small" startIcon={<DeleteIcon />} onClick={onDelete} >
         Eliminar
       </Button>
-      <Button size="small" startIcon={<DownloadIcon />}>
+      <Button size="small" startIcon={<DownloadIcon />} onClick={onDownload}>
         Descargar
       </Button>
       {confirmOpen && <UploadConfirm onClose={handleConfirmClose} files={files} onUpload={handleUpload} />}

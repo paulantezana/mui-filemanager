@@ -30,9 +30,13 @@ const ViewCell = ({ file, onClick, onCheked, onDoubleClick, onContextMenu, check
 }
 
 export const FileGridView = ({
-  files = [], onClick, onDoubleClick, onClickMenu,
+  files = [],
+  onClick,
+  onDoubleClick,
+  onClickMenu,
   rowSelectionModel,
   setRowSelectionModel,
+  customColumns,
 }) => {
   const [selectedRow, setSelectedRow] = useState();
 

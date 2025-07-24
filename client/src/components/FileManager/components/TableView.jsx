@@ -35,6 +35,7 @@ export const TableView = ({
   onClickMenu,
   rowSelectionModel,
   setRowSelectionModel,
+  customColumns,
 }) => {
   const [selectedRow, setSelectedRow] = useState();
 
@@ -42,7 +43,7 @@ export const TableView = ({
 
   const handleContextMenu = (event) => {
     event.preventDefault();
-    setSelectedRow(Number(event.currentTarget.getAttribute('data-id')));
+    setSelectedRow(event.currentTarget.getAttribute('data-id'));
     setContextMenu(
       contextMenu === null
         ? { mouseX: event.clientX - 2, mouseY: event.clientY - 4 }
@@ -58,11 +59,16 @@ export const TableView = ({
     }
   };
 
+  const fullColumns = [
+    ...columns,
+    ...customColumns,
+  ];
+
   return (<>
     <Box sx={{ width: '100%' }} >
       <DataGridPremium
         density="compact"
-        columns={columns}
+        columns={fullColumns}
         rows={files}
 
         // Layout

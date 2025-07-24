@@ -15,17 +15,17 @@ const PanelPreview = ({ selectedFile, operations, onFullScreen, onDownload }) =>
   }
 
   return (
-    <div>
+    <div className="flex column h-full" style={{ paddingLeft: '.5rem' }}>
       <div className="flex items-center gap-1">
         {getFileIcon(selectedFile.type, selectedFile.name)}
-        <div className="font-semibold">{selectedFile.name}</div>
+        <div>{selectedFile.name}</div>
       </div>
 
       <FilePreview file={selectedFile} loadFile={loadFile} onDownload={onDownload} />
 
       <div>
         <div>
-          <strong>Tipo de archivo:</strong> {selectedFile.mimeType}
+          <strong>Tipo de archivo:</strong> {selectedFile?.mimeType}
         </div>
         <div>
           <strong>Tamaño:</strong> {formatFileSize(selectedFile.size)}

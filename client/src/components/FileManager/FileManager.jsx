@@ -1,72 +1,21 @@
 import PanelPreview from "./components/PanelPreview";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import './styles/main.css';
 import searchFiles from "./helpers/searchFile";
 import FileFullPreview from "./components/FileFullPreview";
-import PanelHeader from "./components/PanelHeader";
 import PanelBody from "./components/PanelBody";
 import Toolbar from "./components/Toolbar/Toolbar";
 import Breadcrumb from "./components/Breadcrumb";
 import Search from "./components/Search";
-import { Box, Grid } from "@mui/material";
-
-const useFileManager = ({ operations }) => {
-  const [currentItems, setCurrentItems] = useState([]);
-  const [dataSource, setDataSource] = useState([]);
-  const [pathHistory, setPathHistory] = useState([{ name: 'Inicio', data: [] }]);
-  const [refreshData, setRefreshData] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState(false);
-
-  useEffect(() => {
-    const setNormalized = (data) => {
-      if (data && data.length > 0) {
-        setCurrentItems(data);
-      }
-    }
-
-    const setDataFunction = async (list) => {
-      try {
-        setLoading(true);
-        const path = '/' + pathHistory.filter(item => item.name.toLocaleUpperCase() !== 'INICIO').map(item => item.name).join('/');
-        const files = await list(path);
-        setNormalized(files);
-      } catch (ex) {
-        setErrors(ex.message);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    if (Array.isArray(operations.list)) {
-      setNormalized(operations.list);
-    }
-
-    if (typeof operations.list === 'function') {
-      setDataFunction(operations.list);
-    }
-  }, [operations.list, refreshData, pathHistory.length]);
-
-  const refresh = () => {
-    setRefreshData(prev => !prev);
-  };
-
-  return {
-    loading,
-    errors,
-    currentItems,
-    pathHistory,
-    dataSource,
-    setCurrentItems,
-    setPathHistory,
-    refresh,
-  }
-}
+import useFileManager from "./hooks/useFileManager";
+import VerticalSplitter from "./components/VerticalSplitter";
 
 const FileManager = ({
   operations = {},
   acceptPairs = [],
   readOnly = false,
+  folderModel = 'server', // server || client
+  customColumns = [],
 }) => {
   const {
     dataSource,
@@ -75,7 +24,7 @@ const FileManager = ({
     setCurrentItems,
     setPathHistory,
     refresh
-  } = useFileManager({ operations });
+  } = useFileManager({ operations, folderModel });
 
   const [selectedItem, setSelectedItem] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -113,9 +62,9 @@ const FileManager = ({
   };
 
   // Open
-  const handleFileDoubleClick = (file) => {
-    if (file.type === 'file') {
-      handleFullScreen(file);
+  const handleFileDoubleClick = (item) => {
+    if (item.type === 'file') {
+      handleFullScreen(item);
       return;
     }
 
@@ -126,8 +75,7 @@ const FileManager = ({
     }
 
     // Agregar al historial de navegación
-    setPathHistory(prev => [...prev, { name: file.name, data: file.children }]);
-    setCurrentItems(file.children);
+    setPathHistory(prev => [...prev, { name: item.name }]);
     setSelectedItem(null);
   }
 
@@ -154,10 +102,8 @@ const FileManager = ({
     }
 
     const newPath = pathHistory.slice(0, index + 1);
-    const targetFolder = newPath[newPath.length - 1];
 
     setPathHistory(newPath);
-    setCurrentItems(targetFolder.data);
     setSelectedItem(null);
   };
 
@@ -176,7 +122,6 @@ const FileManager = ({
   }
 
   const onClickMenu = async (key, file) => {
-    console.log({ key, file }, '_MENU_');
     if (key === 'delete') {
       await handleDelete(file);
     }
@@ -185,45 +130,70 @@ const FileManager = ({
     }
   }
 
-  return (
+  const handleMultipleDelete = async () => {
+    debugger;
+    for (let i = 0; i < rowSelectionModel.length; i++) {
+      const file = currentItems.find(r => r.id === rowSelectionModel[i]);
+      await handleDelete(file);
+    }
+  }
+
+  const handleMultipleDownload = async () => {
+    debugger;
+    for (let i = 0; i < rowSelectionModel.length; i++) {
+      const file = currentItems.find(r => r.id === rowSelectionModel[i]);
+      await handleDownload(file);
+    }
+  }
+
+  const LeftPanel = (<div style={{ paddingRight: '.5rem' }}>
     <div>
-      <Grid container spacing={2}>
-        <Grid item xs={6} md={8} lg={9}>
-          <div>
-            <Toolbar
-              operations={operations}
-              refresh={refresh}
-              rowSelectionModel={rowSelectionModel}
-              setViewMode={setViewMode}
-              viewMode={viewMode}
-              pathHistory={pathHistory}
-            />
-            <div className="flex justify-between items-center" style={{ padding: '4px 0' }}>
-              <Breadcrumb pathHistory={pathHistory} onNavigate={navigateToPath} />
-              <Search onSearch={handleSearch} searchTerm={searchTerm} />
-            </div>
-            {isSearching && (
-              <div style={{ padding: '8px', backgroundColor: '#fff3cd', border: '1px solid #ffeaa7' }}>
-                Mostrando resultados para: "{searchTerm}" ({currentItems.length} archivo(s) encontrado(s))
-              </div>
-            )}
-          </div>
-          <div style={{ overflow: 'auto' }}>
-            <PanelBody
-              currentItems={currentItems}
-              onClick={handleFileClick}
-              onDoubleClick={handleFileDoubleClick}
-              onClickMenu={onClickMenu}
-              viewMode={viewMode}
-              rowSelectionModel={rowSelectionModel}
-              setRowSelectionModel={setRowSelectionModel}
-            />
-          </div>
-        </Grid>
-        <Grid item xs={6} md={4} lg={3}>
-          {selectedItem && <PanelPreview selectedFile={selectedItem} onFullScreen={handleFullScreen} onDownload={handleDownload} operations={operations} />}
-        </Grid>
-      </Grid>
+      <Toolbar
+        operations={operations}
+        refresh={refresh}
+        rowSelectionModel={rowSelectionModel}
+        setViewMode={setViewMode}
+        viewMode={viewMode}
+        pathHistory={pathHistory}
+        onDelete={handleMultipleDelete}
+        onDownload={handleMultipleDownload}
+      />
+      <div className="flex justify-between items-center" style={{ padding: '4px 0' }}>
+        <Breadcrumb pathHistory={pathHistory} onNavigate={navigateToPath} />
+        <Search onSearch={handleSearch} searchTerm={searchTerm} />
+      </div>
+      {isSearching && (
+        <div style={{ padding: '8px', backgroundColor: '#fff3cd', border: '1px solid #ffeaa7' }}>
+          Mostrando resultados para: "{searchTerm}" ({currentItems.length} archivo(s) encontrado(s))
+        </div>
+      )}
+    </div>
+    <div style={{ overflow: 'auto' }}>
+      <PanelBody
+        currentItems={currentItems}
+        onClick={handleFileClick}
+        onDoubleClick={handleFileDoubleClick}
+        onClickMenu={onClickMenu}
+        viewMode={viewMode}
+        rowSelectionModel={rowSelectionModel}
+        setRowSelectionModel={setRowSelectionModel}
+        customColumns={customColumns}
+      />
+    </div>
+  </div>);
+
+  const RightPanel = (<PanelPreview selectedFile={selectedItem} onFullScreen={handleFullScreen} onDownload={handleDownload} operations={operations} />);
+
+  return (
+    <div style={{ height: 'calc(100vh - 80px)' }}>
+      <VerticalSplitter
+        leftContent={LeftPanel}
+        rightContent={RightPanel}
+        initialLeftWidth={60}
+        minLeftWidth={15}
+        maxLeftWidth={85}
+        splitterWidth={6}
+      />
       {isFullPreviewOpen && (
         <FileFullPreview
           file={fullPreviewFile}

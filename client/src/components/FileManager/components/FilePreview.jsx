@@ -1,36 +1,19 @@
 import { useEffect, useState, useRef, useMemo } from 'react';
 
 const DEFAULT_CONFIG = {
-  maxPreviewSize: 524288000, // 500 MB
-  supportedTypes: [
-    'image/*',
-    'video/*',
-    'audio/*',
-    'text/*',
-    'application/pdf',
-    'application/json'
-  ]
+  maxPreviewSize: 524288000 // 500 MB
 };
 
-const isTypeSupported = (mimeType, supportedTypes) => {
-  return supportedTypes.some(type => {
-    if (type.endsWith('/*')) {
-      return mimeType.startsWith(type.slice(0, -1));
-    }
-    return type === mimeType;
-  });
-};
+// ============================================================================
+// - - P R E V I W    C O M P O N E N T S
+// ============================================================================
+const MessageContent = ({ text, children, color = '#888' }) => (
+  <div style={{ textAlign: 'center', padding: '2rem', color }}>
+    <div>{text}</div>
+    {children}
+  </div>
+)
 
-const getFileCategory = (mimeType) => {
-  if (mimeType.startsWith('image/')) return 'image';
-  if (mimeType.startsWith('video/')) return 'video';
-  if (mimeType.startsWith('audio/')) return 'audio';
-  if (mimeType.startsWith('text/') || mimeType === 'application/json') return 'text';
-  if (mimeType === 'application/pdf') return 'pdf';
-  return 'unsupported';
-};
-
-// Componentes de vista previa
 const ImagePreview = ({ url, fileName }) => (
   <img
     src={url}
@@ -56,7 +39,7 @@ const AudioPreview = ({ url }) => (
   </audio>
 );
 
-const PDFPreview = ({ url, fileName }) => (
+const IframePreview = ({ url, fileName }) => (
   <iframe
     src={url}
     title={fileName}
@@ -66,29 +49,75 @@ const PDFPreview = ({ url, fileName }) => (
   />
 );
 
-const TextPreview = ({ url, fileName }) => (
-  <iframe
-    src={url}
-    title={fileName}
-    width="100%"
-    height="400px"
-    style={{ border: 'none' }}
-  />
-);
+const UnsupportedPreview = () => <MessageContent text="Visualizador no soportado para este tipo de archivo." />;
 
 const previewComponents = {
   image: ImagePreview,
   video: VideoPreview,
   audio: AudioPreview,
-  pdf: PDFPreview,
-  text: TextPreview
+  iframe: IframePreview,
+  unsupported: UnsupportedPreview
+};
+
+// ============================================================================
+// S U P P O R T
+// ============================================================================
+const extensionToMimeType = {
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  gif: 'image/gif',
+  svg: 'image/svg+xml',
+  webp: 'image/webp',
+
+  mp4: 'video/mp4',
+  webm: 'video/webm',
+  ogv: 'video/ogg',
+  mov: 'video/quicktime',
+
+  mp3: 'audio/mpeg',
+  wav: 'audio/wav',
+  ogg: 'audio/ogg',
+  m4a: 'audio/mp4',
+
+  pdf: 'application/pdf',
+  html: 'text/html',
+  htm: 'text/html',
+  txt: 'text/plain',
+  json: 'application/json',
+  xml: 'application/xml'
+};
+
+const getExtension = (fileName = '') => {
+  const parts = fileName.split('.');
+  return parts.length > 1 ? parts.pop().toLowerCase() : '';
+};
+
+const getFileCategory = (mimeType, fileName) => {
+  const finalMime = mimeType || extensionToMimeType[getExtension(fileName)] || '';
+
+  if (finalMime.startsWith('image/')) return 'image';
+  if (finalMime.startsWith('video/')) return 'video';
+  if (finalMime.startsWith('audio/')) return 'audio';
+  if (
+    finalMime === 'application/pdf' ||
+    finalMime === 'text/plain' ||
+    finalMime === 'text/html' ||
+    finalMime === 'application/xml' ||
+    finalMime === 'application/json'
+  ) return 'iframe';
+
+  return 'unsupported';
 };
 
 const PreviewRenderer = ({ category, url, fileName }) => {
-  const Component = previewComponents[category];
-  return Component ? <Component url={url} fileName={fileName} /> : null;
+  const Component = previewComponents[category] || UnsupportedPreview;
+  return <Component url={url} fileName={fileName} />;
 };
 
+// ============================================================================
+// - - M A I N   C O M P O N E N T
+// ============================================================================
 const FilePreview = ({
   file,
   loadFile,
@@ -109,14 +138,8 @@ const FilePreview = ({
   };
 
   useEffect(() => {
-    if (!file?.mimeType || !file?.name) {
+    if (!file?.name) {
       setState('idle');
-      return;
-    }
-
-    if (!isTypeSupported(file.mimeType, config.supportedTypes)) {
-      setState('error');
-      setError('Tipo de archivo no soportado para vista previa');
       return;
     }
 
@@ -135,10 +158,21 @@ const FilePreview = ({
         const blob = await loadFile(file);
         if (!blob || isCancelled) return;
 
+        const mimeType = file.mimeType || extensionToMimeType[getExtension(file.name)];
+        const category = getFileCategory(mimeType, file.name);
         cleanup();
-        const url = URL.createObjectURL(blob);
-        urlRef.current = url;
-        setPreviewUrl(url);
+
+        if (category === 'iframe' && (mimeType.includes('xml') || mimeType.includes('html'))) {
+          const blobToUse = new Blob([blob], { type: 'text/plain' });
+          const url = URL.createObjectURL(blobToUse);
+          urlRef.current = url;
+          setPreviewUrl(url);
+        } else {
+          const url = URL.createObjectURL(blob);
+          urlRef.current = url;
+          setPreviewUrl(url);
+        }
+
         setState('success');
       } catch (err) {
         if (!isCancelled) {
@@ -164,33 +198,21 @@ const FilePreview = ({
   };
 
   if (!file) {
-    return <div>Selecciona un archivo para ver la vista previa</div>;
+    return <MessageContent text="Selecciona un archivo para ver la vista previa" />
   }
 
   if (state === 'loading') {
-    return (
-      <div>
-        <p>Cargando vista previa de <strong>{file.name}</strong>...</p>
-      </div>
-    );
+    return <MessageContent text={<p>Cargando vista previa de <strong>{file.name}</strong>...</p>} />;
   }
 
   if (state === 'error') {
-    return (
-      <div>
-        <div style={{ color: '#d63031' }}>{error}</div>
-        <button onClick={retry}>Reintentar</button>
-      </div>
-    );
+    return <MessageContent text={error} color='#d63031'><button onClick={retry}>Reintentar</button></MessageContent>;
   }
 
-  if (state === 'success' && previewUrl) {
-    const category = getFileCategory(file.mimeType);
-    return (
-      <div>
-        <PreviewRenderer category={category} url={previewUrl} fileName={file.name} />
-      </div>
-    );
+  if (state === 'success') {
+    const mimeType = file.mimeType || extensionToMimeType[getExtension(file.name)];
+    const category = getFileCategory(mimeType, file.name);
+    return <PreviewRenderer category={category} url={previewUrl} fileName={file.name}/>;
   }
 
   return null;
