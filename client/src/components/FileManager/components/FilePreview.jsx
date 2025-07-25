@@ -8,7 +8,7 @@ const DEFAULT_CONFIG = {
 // - - P R E V I W    C O M P O N E N T S
 // ============================================================================
 const MessageContent = ({ text, children, color = '#888' }) => (
-  <div style={{ textAlign: 'center', padding: '2rem', color }}>
+  <div className='h-full w-full flex column items-center justify-between' style={{ padding: '1rem', color }}>
     <div>{text}</div>
     {children}
   </div>
@@ -44,7 +44,7 @@ const IframePreview = ({ url, fileName }) => (
     src={url}
     title={fileName}
     width="100%"
-    height="600px"
+    height="100%"
     style={{ border: 'none' }}
   />
 );
@@ -198,11 +198,11 @@ const FilePreview = ({
   };
 
   if (!file) {
-    return <MessageContent text="Selecciona un archivo para ver la vista previa" />
+    return <MessageContent text="Not fount" />
   }
 
   if (state === 'loading') {
-    return <MessageContent text={<p>Cargando vista previa de <strong>{file.name}</strong>...</p>} />;
+    return <MessageContent text="Cargando..." />;
   }
 
   if (state === 'error') {

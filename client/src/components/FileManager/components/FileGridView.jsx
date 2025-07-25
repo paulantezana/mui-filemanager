@@ -2,8 +2,9 @@ import { useState } from "react";
 import getFileIcon from "../helpers/fileIcon";
 import ContextMenu from "./ContextMenu";
 import { Checkbox } from "@mui/material";
+import FilePreview from "./FilePreview";
 
-const ViewCell = ({ file, onClick, onCheked, onDoubleClick, onContextMenu, checked }) => {
+const ViewCell = ({ file, onClick, onCheked, onDoubleClick, onContextMenu, checked, loadFile }) => {
   return (
     <div
       className="thumbnail-wrapper"
@@ -12,14 +13,15 @@ const ViewCell = ({ file, onClick, onCheked, onDoubleClick, onContextMenu, check
       onContextMenu={(event) => onContextMenu(event, file)}
     >
       <div className="thumbnail-container">
-        <Checkbox 
-          onChange={(event) => onCheked(event, file)} 
-          size="small" 
-          className="thumbnail-input" 
+        <Checkbox
+          onChange={(event) => onCheked(event, file)}
+          size="small"
+          className="thumbnail-input"
           checked={checked}
         />
         <div className="thumbnail">
-          {getFileIcon(file.type, file.name)}
+          {file.type === 'folder' && <div className="h-full w-full flex items-center justify-center" style={{ fontSize: '2.5rem' }}>📁</div>}
+          {file.type === 'file' && <FilePreview file={file} loadFile={loadFile} />}
         </div>
       </div>
       <div className="thumbnail-text">
@@ -37,6 +39,7 @@ export const FileGridView = ({
   rowSelectionModel,
   setRowSelectionModel,
   customColumns,
+  operations,
 }) => {
   const [selectedRow, setSelectedRow] = useState();
 
@@ -89,18 +92,24 @@ export const FileGridView = ({
     setRowSelectionModel(ids);
   }
 
+  const loadFile = async (file) => {
+    const blob = await operations.load(file);
+    return blob;
+  }
+
   return (<>
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: '.25rem' }}>
       {files.map((file, index) => (
-        <ViewCell 
-          key={index} 
-          showDetail={true} 
-          file={file} 
-          onCheked={handleCheked} 
-          onClick={onClick} 
-          onContextMenu={handleContextMenu} 
-          onDoubleClick={onDoubleClick} 
+        <ViewCell
+          key={index}
+          showDetail={true}
+          file={file}
+          onCheked={handleCheked}
+          onClick={onClick}
+          onContextMenu={handleContextMenu}
+          onDoubleClick={onDoubleClick}
           checked={rowSelectionModel.includes(file.id)}
+          loadFile={loadFile}
         />
       ))}
     </div>

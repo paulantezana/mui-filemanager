@@ -10,6 +10,7 @@ const PanelBody = ({
   rowSelectionModel,
   setRowSelectionModel,
   customColumns,
+  operations,
 }) => {
   return (
     <div className="panel-body">
@@ -30,6 +31,7 @@ const PanelBody = ({
         rowSelectionModel={rowSelectionModel}
         setRowSelectionModel={setRowSelectionModel}
         customColumns={customColumns}
+        operations={operations}
       />}
     </div>
   );

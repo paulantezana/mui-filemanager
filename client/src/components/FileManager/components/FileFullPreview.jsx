@@ -1,4 +1,4 @@
-import { Dialog } from "@mui/material";
+import { Dialog, DialogContent } from "@mui/material";
 import FilePreview from "./FilePreview";
 
 const FileFullPreview = ({ file, onClose, operations, onDownload }) => {
@@ -14,7 +14,11 @@ const FileFullPreview = ({ file, onClose, operations, onDownload }) => {
     scroll="body"
     onClose={onClose}
   >
-    <FilePreview file={file} loadFile={loadFile} onDownload={onDownload} />
+    <DialogContent sx={{ padding: '.5rem' }}>
+      <div style={{ height: 'calc(100vh - 100px)' }}>
+        <FilePreview file={file} loadFile={loadFile} onDownload={onDownload} />
+      </div>
+    </DialogContent>
   </Dialog>);
 }
 

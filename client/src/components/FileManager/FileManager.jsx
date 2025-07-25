@@ -178,6 +178,7 @@ const FileManager = ({
         rowSelectionModel={rowSelectionModel}
         setRowSelectionModel={setRowSelectionModel}
         customColumns={customColumns}
+        operations={operations}
       />
     </div>
   </div>);

@@ -17,6 +17,10 @@
     justify-content: space-between;
   }
 
+  &.justify-center {
+    justify-content: center;
+  }
+
   &.items-center {
     align-items: center;
   }
@@ -25,7 +29,12 @@
     flex-direction: column;
   }
 }
-.h-full{
+
+.h-full {
+  height: 100%;
+}
+
+.w-full {
   height: 100%;
 }
 
