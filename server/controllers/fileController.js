@@ -4,37 +4,68 @@ const mime = require('mime-types');
 
 const basePath = path.join(__dirname, '..', 'uploads');
 
-exports.listDirectory = (req, res) => {
+async function buildNode(item, currentPath, relativePath) {
+  const fullPath = path.join(currentPath, item.name);
+  const relPath = path.posix.join(relativePath, item.name);
+  const stats = await fs.promises.stat(fullPath);
+
+  const node = {
+    id: item.name,
+    name: item.name,
+    type: item.isDirectory() ? 'folder' : 'file',
+    size: item.isDirectory() ? null : stats.size,
+    createdAt: stats.birthtime,
+    updatedAt: stats.mtime,
+    mimeType: item.isDirectory() ? null : mime.lookup(fullPath) || 'application/octet-stream',
+    path: relPath
+  };
+
+  return node;
+}
+
+async function readDirectoryTree(currentPath, relativePath = '') {
+  const items = await fs.promises.readdir(currentPath, { withFileTypes: true });
+
+  const tree = await Promise.all(
+    items.map(async (item) => {
+      const node = await buildNode(item, currentPath, relativePath);
+      if (item.isDirectory()) {
+        node.children = await readDirectoryTree(path.join(currentPath, item.name), path.posix.join(relativePath, item.name));
+      }
+      return node;
+    })
+  );
+
+  return tree;
+}
+
+exports.listDirectory = async (req, res) => {
   const dir = req.query.path || '';
   const targetPath = path.join(basePath, dir);
 
-  fs.readdir(targetPath, { withFileTypes: true }, async (err, items) => {
-    if (err) return res.status(500).send({ error: 'No se pudo leer la carpeta.' });
+  try {
+    const items = await fs.promises.readdir(targetPath, { withFileTypes: true });
 
-    try {
-      const result = await Promise.all(
-        items.map(async (item) => {
-          const fullPath = path.join(targetPath, item.name);
-          const stats = await fs.promises.stat(fullPath);
+    const result = await Promise.all(
+      items.map((item) => buildNode(item, targetPath, dir))
+    );
 
-          return {
-            id: item.name,
-            name: item.name,
-            type: item.isDirectory() ? 'folder' : 'file',
-            size: item.isDirectory() ? null : stats.size,
-            createdAt: stats.birthtime,
-            updatedAt: stats.mtime,
-            mimeType: item.isDirectory() ? null : mime.lookup(fullPath) || 'application/octet-stream',
-            path: path.posix.join(dir, item.name) // <-- Agrega el path relativo
-          };
-        })
-      );
+    res.json(result);
+  } catch (err) {
+    res.status(500).send({ error: 'Error leyendo la carpeta.' });
+  }
+};
 
-      res.json(result);
-    } catch (e) {
-      res.status(500).send({ error: 'Error obteniendo metadatos.' });
-    }
-  });
+exports.listDirectoryTree = async (req, res) => {
+  const dir = req.query.path || '';
+  const targetPath = path.join(basePath, dir);
+
+  try {
+    const result = await readDirectoryTree(targetPath, dir);
+    res.json(result);
+  } catch (err) {
+    res.status(500).send({ error: 'Error leyendo el árbol de carpetas.' });
+  }
 };
 
 exports.createFolder = (req, res) => {

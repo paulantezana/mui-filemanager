@@ -3,13 +3,16 @@ class FileService {
     this.baseURL = baseURL;
   }
 
-  // 🔍 1. Listar archivos y carpetas
   async list(path = '') {
     const res = await fetch(`${this.baseURL}?path=${encodeURIComponent(path)}`);
     return await res.json();
   }
 
-  // 📁 2. Crear carpeta
+  async tree() {
+    const res = await fetch(`${this.baseURL}/tree?path=${encodeURIComponent('/')}`);
+    return await res.json();
+  }
+
   async createFolder(path) {
     const res = await fetch(`${this.baseURL}/create-folder`, {
       method: 'POST',
@@ -19,7 +22,6 @@ class FileService {
     return await res.json();
   }
 
-  // ⬆️ 3. Subir archivo
   async uploadFile(file, path = '') {
     const formData = new FormData();
     formData.append('file', file);
@@ -32,14 +34,12 @@ class FileService {
     return await res.json();
   }
 
-  // ⬇️ 4. Descargar archivo
   async downloadFile(path) {
     const res = await fetch(`${this.baseURL}/download?path=${encodeURIComponent(path)}`);
     if (!res.ok) throw new Error('Error al descargar');
     return await res.blob();
   }
 
-  // ❌ 5. Eliminar archivo o carpeta
   async deletePath(path) {
     const res = await fetch(`${this.baseURL}`, {
       method: 'DELETE',
@@ -49,7 +49,6 @@ class FileService {
     return await res.json();
   }
 
-  // ✏️ 6. Renombrar archivo o carpeta
   async renamePath(oldPath, newName) {
     const res = await fetch(`${this.baseURL}/rename`, {
       method: 'PUT',

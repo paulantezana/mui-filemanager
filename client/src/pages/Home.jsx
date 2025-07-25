@@ -1,54 +1,18 @@
 import { useState } from "react";
-import FileManager from "../components/FileManager/FileManager";
-import FileService from "./services/FileService";
-
-
-const fileService = new FileService();
+import { Button } from "@mui/material";
+import ManagerClient from "./ManagerClient";
+import ManagerServer from "./ManagerServer";
 
 const Home = () => {
-  const [modalOpen, setModalOpen] = useState(false);
+  const [clientModalOpen, setClientModalOpen] = useState(false);
+  const [serverModalOpen, setServerModalOpen] = useState(false);
 
-  const operations = {
-    list: async (path) => {
-      return await fileService.list(path);
-    },
-    info: (path) => {
-
-    },
-    create: async ({ type, file, path }) => {
-      if (type === 'folder') {
-        return await fileService.createFolder(path);
-      } else if (type === 'file') {
-        return await fileService.uploadFile(file, path);
-      }
-    },
-    update: (path) => {
-
-    },
-    delete: async ({ path }) => {
-      return await fileService.deletePath(path);
-    },
-    load: async ({ path }) => {
-      return await fileService.downloadFile(path);
-    },
-  }
-
-  return (<div style={{ height: '100vh' }}>
-    <FileManager
-      operations={operations}
-    // acceptPairs={[['.txt', 'text/plain'], ['.xml', 'text/xml']]}
-
-    />
+  return (<div>
+    <Button onClick={() => setClientModalOpen(true)}>Client</Button>
+    <Button onClick={() => setServerModalOpen(true)}>Server</Button>
+    {clientModalOpen && <ManagerClient onClose={() => setClientModalOpen(false)} />}
+    {serverModalOpen && <ManagerServer onClose={() => setServerModalOpen(false)} />}
   </div>);
-
-  // return (<div>
-  //   <Button variant="contained" color="primary" onClick={() => setModalOpen(true)}>
-  //     Go to File Manager
-  //   </Button>
-  //   {modalOpen && <FileManagerModal
-  //     onClose={() => setModalOpen(false)}
-  //   />}
-  // </div>);
 }
 
 export default Home;

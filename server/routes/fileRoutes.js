@@ -6,6 +6,7 @@ const upload = multer({ dest: 'uploads/' });
 
 // CRUD de archivos/carpetas
 router.get('/', fileController.listDirectory);
+router.get('/tree', fileController.listDirectoryTree);
 router.post('/create-folder', fileController.createFolder);
 router.post('/upload', upload.single('file'), fileController.uploadFile);
 router.get('/download', fileController.downloadFile);
