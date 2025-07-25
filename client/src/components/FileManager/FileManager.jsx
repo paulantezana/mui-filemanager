@@ -16,6 +16,7 @@ const FileManager = ({
   readOnly = false,
   folderModel = 'server', // server || client
   customColumns = [],
+  customComponents = [],
 }) => {
   const {
     dataSource,
@@ -31,7 +32,7 @@ const FileManager = ({
   const [isSearching, setIsSearching] = useState(false);
   const [fullPreviewFile, setFullPreviewFile] = useState(null);
   const [isFullPreviewOpen, setIsFullPreviewOpen] = useState(false);
-  const [viewMode, setViewMode] = useState('table');
+  const [viewMode, setViewMode] = useState('grid');
 
   const [rowSelectionModel, setRowSelectionModel] = useState([]);
 
@@ -157,6 +158,8 @@ const FileManager = ({
         pathHistory={pathHistory}
         onDelete={handleMultipleDelete}
         onDownload={handleMultipleDownload}
+        acceptPairs={acceptPairs}
+        customComponents={customComponents}
       />
       <div className="flex justify-between items-center" style={{ padding: '4px 0' }}>
         <Breadcrumb pathHistory={pathHistory} onNavigate={navigateToPath} />
@@ -190,7 +193,7 @@ const FileManager = ({
       <VerticalSplitter
         leftContent={LeftPanel}
         rightContent={RightPanel}
-        initialLeftWidth={60}
+        initialLeftWidth={50}
         minLeftWidth={15}
         maxLeftWidth={85}
         splitterWidth={6}

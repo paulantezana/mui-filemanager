@@ -1,14 +1,10 @@
-import { useState } from "react";
 import FileManager from "../components/FileManager/FileManager";
 import FileService from "./services/FileService";
 import { Dialog, DialogContent } from "@mui/material";
-import data from './data';
 
 const fileService = new FileService();
 
 const ManagerClient = ({ onClose }) => {
-  const [modalOpen, setModalOpen] = useState(false);
-
   const operations = {
     // list: data,
     list: async (path) => {
@@ -17,7 +13,8 @@ const ManagerClient = ({ onClose }) => {
     info: (path) => {
 
     },
-    create: async ({ type, file, path }) => {
+    create: async ({ type, data, path }) => {
+      const { file } = data;
       if (type === 'folder') {
         return await fileService.createFolder(path);
       } else if (type === 'file') {
@@ -35,8 +32,6 @@ const ManagerClient = ({ onClose }) => {
     },
   }
 
-  const customColumns = [];
-
   return (<Dialog
     open
     fullWidth
@@ -45,7 +40,7 @@ const ManagerClient = ({ onClose }) => {
   >
     <DialogContent sx={{ padding: '.5rem' }} >
       <div style={{ height: 'calc(100vh - 80px)' }}>
-        <FileManager operations={operations} customColumns={customColumns} folderModel="client"></FileManager>
+        <FileManager operations={operations} folderModel="client"></FileManager>
       </div>
     </DialogContent>
   </Dialog>);

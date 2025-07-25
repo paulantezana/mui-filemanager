@@ -4,28 +4,68 @@ import CloseIcon from '@mui/icons-material/Close';
 import formatFileSize from "../../helpers/formatFileSize";
 
 const filesReducer = (state, action) => {
-  const { type, index, status, message } = action;
-  if (type === 'UPDATE') return state.map((item, i) => i === index ? { ...item, status, message: message || '' } : item);
+  const { type, index, ...updateData } = action;
+  if (type === 'UPDATE') { return state.map((item, i) => i === index ? { ...item, ...updateData } : item) }
   if (type === 'REMOVE') return state.filter((_, i) => i !== index);
   return state;
 };
 
-const Item = ({ item, onDelete, onRetry, index }) => {
+// Factory de componentes dinámicos
+const ComponentRenderer = ({ config, value, onChange }) => {
+  const handleChange = (newValue) => {
+    onChange(config.key, newValue);
+  };
+
+  if (!config.Component) return null;
+
+  const CustomComponent = config.Component;
+  return (
+    <div style={{ minWidth: '12rem' }}>
+      <CustomComponent
+        value={value}
+        onChange={handleChange}
+        label={config.label}
+        {...config.props}
+      />
+    </div>
+  );
+};
+
+const Item = ({
+  item,
+  onDelete,
+  onRetry,
+  onAdditionalDataChange,
+  index,
+  customComponents = []
+}) => {
   const statusIcon = {
     uploading: '\u23F3', // ⏳
     uploaded: '\u2714',  // ✔
     error: '\u26A0',     // ⚠
-    pending: '\u25CB', // ○ (opcional para temporal)
+    pending: '\u25CB', // ○
   }[item.status] || '';
 
   const canDelete = ['pending', 'error'].includes(item.status);
 
+  const handleCustomComponentChange = (key, value) => {
+    onAdditionalDataChange(index, { [key]: value });
+  };
+
   return (
     <div className={`fm-file-item ${item.status}`}>
       <div className="fm-file-info flex justify-between items-center gap-3">
-        <div className="flex items-center">
+        <div className="flex items-center gap-2">
           <div className="fm-file-icon" title={item.message}>{statusIcon}</div>
           <div className="fm-file-name">{item.file.name}</div>
+          {customComponents.map((config) => (
+            <ComponentRenderer
+              key={config.key}
+              config={config}
+              value={item[config.key]}
+              onChange={handleCustomComponentChange}
+            />
+          ))}
         </div>
         <div className="fm-file-size"><small>{formatFileSize(item.file.size)}</small></div>
         <div className="fm-file-actions flex items-center">
@@ -35,7 +75,9 @@ const Item = ({ item, onDelete, onRetry, index }) => {
             </Button>
           )}
           {canDelete && (
-            <IconButton onClick={() => onDelete(index)} title="Quitar" size="small"><CloseIcon fontSize="small" /></IconButton>
+            <IconButton onClick={() => onDelete(index)} title="Quitar" size="small">
+              <CloseIcon fontSize="small" />
+            </IconButton>
           )}
         </div>
       </div>
@@ -43,14 +85,34 @@ const Item = ({ item, onDelete, onRetry, index }) => {
   );
 };
 
-const UploadConfirm = ({ onClose, onUpload, files = [], parallel = true }) => {
-  const [currentFiles, dispatch] = useReducer(filesReducer, files.map(file => ({ file, status: 'pending', message: '' })));
+const UploadConfirm = ({
+  onClose,
+  onUpload,
+  files = [],
+  parallel = true,
+  customComponents = []
+}) => {
+  const [currentFiles, dispatch] = useReducer(
+    filesReducer,
+    files.map(file => ({
+      file,
+      status: 'pending',
+      message: ''
+    }))
+  );
   const state = useRef({ uploading: false, currentIndex: -1, abortController: null });
 
-  const uploadFile = useCallback(async (file, index) => {
+  const uploadFile = useCallback(async (fileData, index) => {
     dispatch({ type: 'UPDATE', index, status: 'uploading' });
     try {
-      await onUpload(file, state.current.abortController?.signal);
+      // Crear el objeto completo con file y datos adicionales
+      const { file, status, message, ...additionalData } = fileData;
+      const uploadData = {
+        file,
+        ...additionalData
+      };
+
+      await onUpload(uploadData, state.current.abortController?.signal);
       dispatch({ type: 'UPDATE', index, status: 'uploaded' });
       return true;
     } catch (err) {
@@ -67,12 +129,14 @@ const UploadConfirm = ({ onClose, onUpload, files = [], parallel = true }) => {
     state.current = { uploading: true, currentIndex: -1, abortController: new AbortController() };
 
     const results = parallel ?
-      await Promise.allSettled(filesToUpload.map(({ originalIndex }) => uploadFile(currentFiles[originalIndex].file, originalIndex))) :
+      await Promise.allSettled(filesToUpload.map(({ originalIndex }) =>
+        uploadFile(currentFiles[originalIndex], originalIndex)
+      )) :
       await (async () => {
         const results = [];
         for (const { originalIndex } of filesToUpload) {
           state.current.currentIndex = originalIndex;
-          const result = await uploadFile(currentFiles[originalIndex].file, originalIndex);
+          const result = await uploadFile(currentFiles[originalIndex], originalIndex);
           results.push(result);
           if (result === null) break; // Cancelled
         }
@@ -97,6 +161,10 @@ const UploadConfirm = ({ onClose, onUpload, files = [], parallel = true }) => {
       dispatch({ type: 'REMOVE', index });
     }
   }, [currentFiles.length, onClose]);
+
+  const handleAdditionalDataChange = useCallback((index, additionalData) => {
+    dispatch({ type: 'UPDATE', index, ...additionalData });
+  }, []);
 
   const handleClose = useCallback(() => {
     state.current.abortController?.abort();
@@ -180,6 +248,8 @@ const UploadConfirm = ({ onClose, onUpload, files = [], parallel = true }) => {
             index={index}
             onDelete={handleDelete}
             onRetry={handleRetry}
+            onAdditionalDataChange={handleAdditionalDataChange}
+            customComponents={customComponents}
           />
         ))}
       </DialogContent>

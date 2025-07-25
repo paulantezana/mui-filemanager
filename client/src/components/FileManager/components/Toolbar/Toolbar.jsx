@@ -15,7 +15,9 @@ const Toolbar = ({
   rowSelectionModel,
   pathHistory,
   onDelete,
-  onDownload
+  onDownload,
+  acceptPairs,
+  customComponents
 }) => {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [files, setFiles] = useState([]);
@@ -31,9 +33,9 @@ const Toolbar = ({
     setConfirmOpen(false);
   };
 
-  const handleUpload = async (file) => {
+  const handleUpload = async (data, signal) => {
     const path = '/' + pathHistory.filter(item => item.name.toLocaleUpperCase() !== 'INICIO').map(item => item.name).join('/');
-    return await operations.create({ type: 'file', file, path });
+    return await operations.create({ type: 'file', data, path }, signal);
   }
 
   return (<div className="flex justify-between items-center">
@@ -41,6 +43,7 @@ const Toolbar = ({
       <UploadButton
         onFileChange={onFileChange}
         multiple={true}
+        acceptPairs={acceptPairs}
       />
       <Button size="small" startIcon={<DeleteIcon />} onClick={onDelete} >
         Eliminar
@@ -48,7 +51,7 @@ const Toolbar = ({
       <Button size="small" startIcon={<DownloadIcon />} onClick={onDownload}>
         Descargar
       </Button>
-      {confirmOpen && <UploadConfirm onClose={handleConfirmClose} files={files} onUpload={handleUpload} />}
+      {confirmOpen && <UploadConfirm onClose={handleConfirmClose} files={files} onUpload={handleUpload} customComponents={customComponents} />}
     </div>
     <div className="flex items-center">
       {rowSelectionModel.length > 0 ? (rowSelectionModel.length + ' selecionado') : ''}
