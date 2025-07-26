@@ -1,18 +1,29 @@
 import { Button } from "@mui/material";
 import getFileIcon from "../helpers/fileIcon";
 import formatFileSize from "../helpers/formatFileSize";
-import FilePreview from "./FilePreview";
 
 import DownloadIcon from '@mui/icons-material/Download';
 import OpenInFullIcon from '@mui/icons-material/OpenInFull';
+import { useSetFullscreenPreviewFile } from "../context/FullscreenPreviewContext";
+import { useSelectedFile } from "../context/FileSelectionContext";
+import { useFileManagerContext } from "../context/FileManagerContext";
+import FilePreview from "../shared/components/FilePreview";
 
-const PanelPreview = ({ selectedFile, operations, onFullScreen, onDownload }) => {
-  if (!selectedFile) return null
+const RightPanel = () => {
+  const { operations, onDownload } = useFileManagerContext()
+  const setFile = useSetFullscreenPreviewFile();
+  const selectedFile = useSelectedFile();
 
   const loadFile = async (file) => {
     const blob = await operations.load(file);
     return blob;
   }
+
+  const handleFullScreen = (file) => {
+    setFile(file);
+  }
+
+  if (!selectedFile) return null
 
   return (
     <div className="flex column h-full" style={{ paddingLeft: '.5rem' }}>
@@ -36,10 +47,10 @@ const PanelPreview = ({ selectedFile, operations, onFullScreen, onDownload }) =>
       </div>
 
       <div className="flex gap-2 justify-center">
-        <Button size="small" onClick={() => onFullScreen(selectedFile)} variant="outlined" startIcon={<OpenInFullIcon />}>
+        <Button size="small" onClick={() => handleFullScreen(selectedFile)} variant="outlined" startIcon={<OpenInFullIcon />}>
           Ver completo
         </Button>
-        <Button size="small" onClick={() => onDownload(selectedFile)} variant="outlined" startIcon={<DownloadIcon/>}>
+        <Button size="small" onClick={() => onDownload(selectedFile)} variant="outlined" startIcon={<DownloadIcon />}>
           Descargar
         </Button>
       </div>
@@ -47,4 +58,4 @@ const PanelPreview = ({ selectedFile, operations, onFullScreen, onDownload }) =>
   )
 }
 
-export default PanelPreview;
+export default RightPanel;

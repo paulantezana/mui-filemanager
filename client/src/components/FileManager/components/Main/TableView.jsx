@@ -1,10 +1,11 @@
 import { useState } from "react";
-import getFileIcon from "../helpers/fileIcon";
+import getFileIcon from "../../helpers/fileIcon";
 
 import { DataGridPremium } from '@mui/x-data-grid-premium';
-import formatFileSize from "../helpers/formatFileSize";
-import ContextMenu from "./ContextMenu";
+import formatFileSize from "../../helpers/formatFileSize";
+import ContextMenu from "../../shared/components/ContextMenu";
 import { Box } from "@mui/material";
+import { useSetSelectedFile } from "../../context/FileSelectionContext";
 
 const columns = [
   {
@@ -30,13 +31,12 @@ const columns = [
 
 export const TableView = ({
   files = [],
-  onClick,
   onDoubleClick,
   onClickMenu,
   rowSelectionModel,
   setRowSelectionModel,
-  customColumns,
 }) => {
+  const setSelectedFile = useSetSelectedFile();
   const [selectedRow, setSelectedRow] = useState();
 
   const [contextMenu, setContextMenu] = useState(null);
@@ -59,9 +59,12 @@ export const TableView = ({
     }
   };
 
+  const handleClick = (file) => {
+    setSelectedFile(file);
+  }
+
   const fullColumns = [
     ...columns,
-    ...customColumns,
   ];
 
   return (<>
@@ -81,7 +84,7 @@ export const TableView = ({
         }}
 
         onRowDoubleClick={(params) => onDoubleClick(params.row)}
-        onRowClick={(params) => onClick(params.row)}
+        onRowClick={(params) => handleClick(params.row)}
         slotProps={{
           row: {
             onContextMenu: handleContextMenu,

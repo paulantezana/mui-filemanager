@@ -1,8 +1,8 @@
 import { useState } from "react";
-import getFileIcon from "../helpers/fileIcon";
-import ContextMenu from "./ContextMenu";
+import ContextMenu from "../../shared/components/ContextMenu";
 import { Checkbox } from "@mui/material";
-import FilePreview from "./FilePreview";
+import { useSetSelectedFile } from "../../context/FileSelectionContext";
+import FilePreview from "../../shared/components/FilePreview";
 
 const ViewCell = ({ file, onClick, onCheked, onDoubleClick, onContextMenu, checked, loadFile }) => {
   return (
@@ -33,14 +33,13 @@ const ViewCell = ({ file, onClick, onCheked, onDoubleClick, onContextMenu, check
 
 export const FileGridView = ({
   files = [],
-  onClick,
   onDoubleClick,
   onClickMenu,
   rowSelectionModel,
   setRowSelectionModel,
-  customColumns,
   operations,
 }) => {
+  const setSelectedFile = useSetSelectedFile();
   const [selectedRow, setSelectedRow] = useState();
 
   const [contextMenu, setContextMenu] = useState(null);
@@ -97,6 +96,10 @@ export const FileGridView = ({
     return blob;
   }
 
+  const handleClick = (file) => {
+    setSelectedFile(file);
+  }
+
   return (<>
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: '.25rem' }}>
       {files.map((file, index) => (
@@ -105,7 +108,7 @@ export const FileGridView = ({
           showDetail={true}
           file={file}
           onCheked={handleCheked}
-          onClick={onClick}
+          onClick={handleClick}
           onContextMenu={handleContextMenu}
           onDoubleClick={onDoubleClick}
           checked={rowSelectionModel.includes(file.id)}
