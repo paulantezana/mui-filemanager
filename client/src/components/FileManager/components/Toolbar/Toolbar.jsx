@@ -53,12 +53,12 @@ const Toolbar = () => {
         multiple={true}
         acceptPairs={acceptPairs}
       />
-      <Button size="small" startIcon={<DeleteIcon />} onClick={handleMultipleDelete} >
+      {/* <Button size="small" startIcon={<DeleteIcon />} onClick={handleMultipleDelete} >
         Eliminar
       </Button>
       <Button size="small" startIcon={<DownloadIcon />} onClick={handleMultipleDownload}>
         Descargar
-      </Button>
+      </Button> */}
       {confirmOpen && <UploadConfirm onClose={handleConfirmClose} files={files} onUpload={handleUpload} customComponents={customComponents} />}
     </div>
     <div className="flex items-center">

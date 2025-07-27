@@ -1,5 +1,6 @@
 import { createContext, useContext, useState } from "react";
 import useFileManager from "./../hooks/useFileManager";
+import fileBlobDownload from "../helpers/fileBlobDownload";
 
 const FileManagerContext = createContext(null);
 
@@ -16,12 +17,7 @@ export const FileManagerProvider = ({
 
   const download = async (file) => {
     const blob = await operations.load(file);
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = file.name || 'archivo';
-    a.click();
-    URL.revokeObjectURL(url);
+    fileBlobDownload(blob);
   }
 
   return (

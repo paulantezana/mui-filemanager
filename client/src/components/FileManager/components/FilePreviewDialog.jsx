@@ -2,7 +2,7 @@ import { Button, Dialog, DialogContent, IconButton } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
 import DownloadIcon from '@mui/icons-material/Download';
 import { useFileManagerContext } from "../context/FileManagerContext";
-import FilePreview from "../shared/components/FilePreview";
+import FileViewer from "../shared/components/FileViewer";
 
 const FilePreviewDialog = ({ file, onClose }) => {
   const { operations, download } = useFileManagerContext();
@@ -25,7 +25,9 @@ const FilePreviewDialog = ({ file, onClose }) => {
           <Button size="small" onClick={() => download(file)} startIcon={<DownloadIcon />}>Descargar</Button>
           <IconButton size="small" onClick={onClose}><CloseIcon fontSize="small" /></IconButton>
         </div>
-        <FilePreview file={file} loadFile={loadFile} onDownload={download} />
+        <div className="h-full flex items-center justify-center">
+          <FileViewer file={file} loadFile={loadFile}/>
+        </div>
       </div>
     </DialogContent>
   </Dialog>);

@@ -10,7 +10,7 @@ import { useFileManagerContext } from "../context/FileManagerContext";
 import FileViewer from "../shared/components/FileViewer";
 
 const RightPanel = () => {
-  const { operations, onDownload } = useFileManagerContext()
+  const { operations, download } = useFileManagerContext()
   const setFile = useSetFullscreenPreviewFile();
   const selectedFile = useSelectedFile();
 
@@ -29,7 +29,7 @@ const RightPanel = () => {
         <div>{selectedFile.name}</div>
       </div>
 
-      <FileViewer file={selectedFile} loadFile={loadFile} onDownload={onDownload} />
+      <FileViewer file={selectedFile} loadFile={loadFile}/>
 
       <div>
         <div>
@@ -42,7 +42,7 @@ const RightPanel = () => {
           <Button size="small" onClick={() => handleFullScreen(selectedFile)} variant="outlined" startIcon={<OpenInFullIcon />}>
             Ver completo
           </Button>
-          <Button size="small" onClick={() => onDownload(selectedFile)} variant="outlined" startIcon={<DownloadIcon />}>
+          <Button size="small" onClick={() => download(selectedFile)} variant="outlined" startIcon={<DownloadIcon />}>
             Descargar
           </Button>
         </div>

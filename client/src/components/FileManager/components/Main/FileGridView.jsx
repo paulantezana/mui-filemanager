@@ -4,11 +4,17 @@ import { Checkbox } from "@mui/material";
 import { useSetSelectedFile } from "../../context/FileSelectionContext";
 import FileViewer from "../../shared/components/FileViewer";
 
-const ViewCell = ({ file, onClick, onCheked, onDoubleClick, onContextMenu, checked, loadFile }) => {
+const ViewCell = ({ file, onCheked, onDoubleClick, onContextMenu, checked, loadFile }) => {
+  const setSelectedFile = useSetSelectedFile();
+
+  const handleClick = () => {
+    setSelectedFile(file);
+  }
+
   return (
     <div
       className="thumbnail-wrapper"
-      onClick={() => onClick(file)}
+      onClick={handleClick}
       onDoubleClick={() => onDoubleClick(file)}
       onContextMenu={(event) => onContextMenu(event, file)}
     >
@@ -39,7 +45,6 @@ export const FileGridView = ({
   setRowSelectionModel,
   operations,
 }) => {
-  const setSelectedFile = useSetSelectedFile();
   const [selectedRow, setSelectedRow] = useState();
 
   const [contextMenu, setContextMenu] = useState(null);
@@ -96,9 +101,6 @@ export const FileGridView = ({
     return blob;
   }
 
-  const handleClick = (file) => {
-    setSelectedFile(file);
-  }
 
   return (<>
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: '.25rem' }}>
@@ -108,7 +110,6 @@ export const FileGridView = ({
           showDetail={true}
           file={file}
           onCheked={handleCheked}
-          onClick={handleClick}
           onContextMenu={handleContextMenu}
           onDoubleClick={onDoubleClick}
           checked={rowSelectionModel.includes(file.id)}

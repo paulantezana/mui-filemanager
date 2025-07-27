@@ -8,7 +8,7 @@ const DEFAULT_CONFIG = {
 // - - P R E V I W    C O M P O N E N T S
 // ============================================================================
 const MessageContent = ({ text, children, color = '#888' }) => (
-  <div className='h-full w-full flex column items-center justify-between' style={{ padding: '1rem', color }}>
+  <div className='h-full w-full flex column items-center justify-center' style={{ padding: '.5rem', color }}>
     <div>{text}</div>
     {children}
   </div>
@@ -133,15 +133,15 @@ const FileViewer = ({
   cover = false,
 }) => {
   const [state, setState] = useState('idle'); // idle, loading, success, error
-  const [previewUrl, setPreviewUrl] = useState(null);
-  const [error, setError] = useState(null);
+  const [preview, setPreview] = useState({ url: null, file: null });
   const urlRef = useRef(null);
+  const [error, setError] = useState(null);
 
   const config = useMemo(() => userConfig, [userConfig]);
 
   const cleanup = () => {
     if (urlRef.current) {
-      URL.revokeObjectURL(urlRef.current);
+      URL.revokeObjectURL(urlRef.current); // Liberar memoria
       urlRef.current = null;
     }
   };
@@ -154,7 +154,7 @@ const FileViewer = ({
 
     if (file.size > config.maxPreviewSize) {
       setState('error');
-      setError('Archivo muy grande para vista previa');
+      setError('El archivo es demasiado grande para verlo');
       return;
     }
 
@@ -171,17 +171,13 @@ const FileViewer = ({
         const category = getFileCategory(mimeType, file.name);
         cleanup();
 
-        if (category === 'iframe' && (mimeType.includes('xml') || mimeType.includes('html'))) {
-          const blobToUse = new Blob([blob], { type: 'text/plain' });
-          const url = URL.createObjectURL(blobToUse);
-          urlRef.current = url;
-          setPreviewUrl(url);
-        } else {
-          const url = URL.createObjectURL(blob);
-          urlRef.current = url;
-          setPreviewUrl(url);
-        }
+        const url = category === 'iframe' && (mimeType.includes('html') || mimeType.includes('xml'))
+          ? URL.createObjectURL(new Blob([blob], { type: 'text/plain' }))
+          : URL.createObjectURL(blob);
 
+        urlRef.current = url;
+
+        setPreview({ url, file }); // Se guarda el file asociado al URL
         setState('success');
       } catch (err) {
         if (!isCancelled) {
@@ -199,13 +195,6 @@ const FileViewer = ({
     };
   }, [file, loadFile, config]);
 
-  const retry = () => {
-    if (file) {
-      setState('loading');
-      setError(null);
-    }
-  };
-
   if (!file) {
     return <MessageContent text="Not fount" />
   }
@@ -215,16 +204,16 @@ const FileViewer = ({
   }
 
   if (state === 'error') {
-    return <MessageContent text={error} color='#d63031'><button onClick={retry}>Reintentar</button></MessageContent>;
+    return <MessageContent text={error} color='#d63031' />;
   }
 
-  if (state === 'success') {
+  if (state === 'success' && preview.url && preview.file?.id === file.id) {
     const mimeType = file.mimeType || extensionToMimeType[getExtension(file.name)];
     const category = getFileCategory(mimeType, file.name);
-    return <PreviewRenderer category={category} cover={cover} url={previewUrl} fileName={file.name} />;
+    return <PreviewRenderer category={category} cover={cover} url={preview.url} fileName={file.name} />;
   }
 
-  return null;
+  return <MessageContent text="Renderizando..." />;
 };
 
 export default FileViewer;
