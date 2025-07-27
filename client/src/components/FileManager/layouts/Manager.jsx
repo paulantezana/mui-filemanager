@@ -9,7 +9,7 @@ const Manager = () => {
       <VerticalSplitter
         leftContent={<LeftPanel />}
         rightContent={<RightPanel />}
-        initialLeftWidth={50}
+        initialLeftWidth={40}
         minLeftWidth={15}
         maxLeftWidth={85}
         splitterWidth={6}

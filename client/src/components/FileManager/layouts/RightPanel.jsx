@@ -7,17 +7,14 @@ import OpenInFullIcon from '@mui/icons-material/OpenInFull';
 import { useSetFullscreenPreviewFile } from "../context/FullscreenPreviewContext";
 import { useSelectedFile } from "../context/FileSelectionContext";
 import { useFileManagerContext } from "../context/FileManagerContext";
-import FilePreview from "../shared/components/FilePreview";
+import FileViewer from "../shared/components/FileViewer";
 
 const RightPanel = () => {
   const { operations, onDownload } = useFileManagerContext()
   const setFile = useSetFullscreenPreviewFile();
   const selectedFile = useSelectedFile();
 
-  const loadFile = async (file) => {
-    const blob = await operations.load(file);
-    return blob;
-  }
+  const loadFile = async (file) => await operations.load(file);
 
   const handleFullScreen = (file) => {
     setFile(file);
@@ -26,33 +23,29 @@ const RightPanel = () => {
   if (!selectedFile) return null
 
   return (
-    <div className="flex column h-full" style={{ paddingLeft: '.5rem' }}>
+    <div className="flex column justify-between h-full" style={{ paddingLeft: '.5rem' }}>
       <div className="flex items-center gap-1">
         {getFileIcon(selectedFile.type, selectedFile.name)}
         <div>{selectedFile.name}</div>
       </div>
 
-      <FilePreview file={selectedFile} loadFile={loadFile} onDownload={onDownload} />
+      <FileViewer file={selectedFile} loadFile={loadFile} onDownload={onDownload} />
 
       <div>
-        <div>
-          <strong>Tipo de archivo:</strong> {selectedFile?.mimeType}
-        </div>
         <div>
           <strong>Tamaño:</strong> {formatFileSize(selectedFile.size)}
         </div>
         <div>
           <strong>Modificado:</strong> {selectedFile.updatedAt?.toLocaleString()}
         </div>
-      </div>
-
-      <div className="flex gap-2 justify-center">
-        <Button size="small" onClick={() => handleFullScreen(selectedFile)} variant="outlined" startIcon={<OpenInFullIcon />}>
-          Ver completo
-        </Button>
-        <Button size="small" onClick={() => onDownload(selectedFile)} variant="outlined" startIcon={<DownloadIcon />}>
-          Descargar
-        </Button>
+        <div className="flex gap-2">
+          <Button size="small" onClick={() => handleFullScreen(selectedFile)} variant="outlined" startIcon={<OpenInFullIcon />}>
+            Ver completo
+          </Button>
+          <Button size="small" onClick={() => onDownload(selectedFile)} variant="outlined" startIcon={<DownloadIcon />}>
+            Descargar
+          </Button>
+        </div>
       </div>
     </div>
   )

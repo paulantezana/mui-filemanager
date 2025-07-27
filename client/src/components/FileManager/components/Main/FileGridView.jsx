@@ -2,7 +2,7 @@ import { useState } from "react";
 import ContextMenu from "../../shared/components/ContextMenu";
 import { Checkbox } from "@mui/material";
 import { useSetSelectedFile } from "../../context/FileSelectionContext";
-import FilePreview from "../../shared/components/FilePreview";
+import FileViewer from "../../shared/components/FileViewer";
 
 const ViewCell = ({ file, onClick, onCheked, onDoubleClick, onContextMenu, checked, loadFile }) => {
   return (
@@ -21,7 +21,7 @@ const ViewCell = ({ file, onClick, onCheked, onDoubleClick, onContextMenu, check
         />
         <div className="thumbnail">
           {file.type === 'folder' && <div className="h-full w-full flex items-center justify-center" style={{ fontSize: '2.5rem' }}>📁</div>}
-          {file.type === 'file' && <FilePreview file={file} loadFile={loadFile} />}
+          {file.type === 'file' && <FileViewer file={file} loadFile={loadFile} cover={true} />}
         </div>
       </div>
       <div className="thumbnail-text">

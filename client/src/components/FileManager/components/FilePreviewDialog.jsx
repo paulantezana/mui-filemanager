@@ -1,4 +1,6 @@
-import { Dialog, DialogContent } from "@mui/material";
+import { Button, Dialog, DialogContent, IconButton } from "@mui/material";
+import CloseIcon from '@mui/icons-material/Close';
+import DownloadIcon from '@mui/icons-material/Download';
 import { useFileManagerContext } from "../context/FileManagerContext";
 import FilePreview from "../shared/components/FilePreview";
 
@@ -12,13 +14,17 @@ const FilePreviewDialog = ({ file, onClose }) => {
 
   return (<Dialog
     open
-    fullWidth 
+    fullWidth
     maxWidth="lg"
     scroll="body"
     onClose={onClose}
   >
-    <DialogContent sx={{ padding: '.5rem' }}>
-      <div style={{ height: 'calc(100vh - 100px)' }}>
+    <DialogContent sx={{ padding: '0' }}>
+      <div className="flex column" style={{ height: 'calc(100vh - 80px)' }}>
+        <div className="flex justify-between" style={{ padding: '.5rem 0 .5rem .5rem' }}>
+          <Button size="small" onClick={() => download(file)} startIcon={<DownloadIcon />}>Descargar</Button>
+          <IconButton size="small" onClick={onClose}><CloseIcon fontSize="small" /></IconButton>
+        </div>
         <FilePreview file={file} loadFile={loadFile} onDownload={download} />
       </div>
     </DialogContent>

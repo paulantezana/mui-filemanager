@@ -14,27 +14,34 @@ const MessageContent = ({ text, children, color = '#888' }) => (
   </div>
 )
 
-const ImagePreview = ({ url, fileName }) => (
+const ImagePreview = ({ url, cover, fileName }) => (
   <img
     src={url}
     alt={fileName}
     style={{
-      maxWidth: '100%',
-      maxHeight: '70vh',
       display: 'block',
-      margin: '0 auto'
+      margin: '0 auto',
+      ...(!cover && {
+        maxHeight: '70vh',
+        maxWidth: '100%',
+      }),
+      ...(cover && {
+        width: '100%',
+        height: '100%',
+        objectFit: 'contain',
+      }),
     }}
   />
 );
 
-const VideoPreview = ({ url }) => (
-  <video controls src={url} style={{ width: '100%', maxHeight: '70vh' }}>
+const VideoPreview = ({ url, cover }) => (
+  <video controls={!cover} src={url} style={{ width: '100%', maxHeight: '70vh' }}>
     Tu navegador no soporta video.
   </video>
 );
 
-const AudioPreview = ({ url }) => (
-  <audio controls src={url} style={{ width: '100%' }}>
+const AudioPreview = ({ url, cover }) => (
+  <audio controls={!cover} src={url} style={{ width: '100%' }}>
     Tu navegador no soporta audio.
   </audio>
 );
@@ -70,7 +77,7 @@ const extensionToMimeType = {
   svg: 'image/svg+xml',
   webp: 'image/webp',
 
-  mp4: 'video/mp4',
+  mp4: 'application/mp4',
   webm: 'video/webm',
   ogv: 'video/ogg',
   mov: 'video/quicktime',
@@ -99,6 +106,7 @@ const getFileCategory = (mimeType, fileName) => {
   if (finalMime.startsWith('image/')) return 'image';
   if (finalMime.startsWith('video/')) return 'video';
   if (finalMime.startsWith('audio/')) return 'audio';
+  if (finalMime.startsWith('application/mp4')) return 'video';
   if (
     finalMime === 'application/pdf' ||
     finalMime === 'text/plain' ||
@@ -110,18 +118,19 @@ const getFileCategory = (mimeType, fileName) => {
   return 'unsupported';
 };
 
-const PreviewRenderer = ({ category, url, fileName }) => {
+const PreviewRenderer = ({ category, cover, url, fileName }) => {
   const Component = previewComponents[category] || UnsupportedPreview;
-  return <Component url={url} fileName={fileName} />;
+  return <Component url={url} cover={cover} fileName={fileName} />;
 };
 
 // ============================================================================
 // - - M A I N   C O M P O N E N T
 // ============================================================================
-const FilePreview = ({
+const FileViewer = ({
   file,
   loadFile,
-  config: userConfig = DEFAULT_CONFIG
+  config: userConfig = DEFAULT_CONFIG,
+  cover = false,
 }) => {
   const [state, setState] = useState('idle'); // idle, loading, success, error
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -212,10 +221,10 @@ const FilePreview = ({
   if (state === 'success') {
     const mimeType = file.mimeType || extensionToMimeType[getExtension(file.name)];
     const category = getFileCategory(mimeType, file.name);
-    return <PreviewRenderer category={category} url={previewUrl} fileName={file.name}/>;
+    return <PreviewRenderer category={category} cover={cover} url={previewUrl} fileName={file.name} />;
   }
 
   return null;
 };
 
-export default FilePreview;
+export default FileViewer;
