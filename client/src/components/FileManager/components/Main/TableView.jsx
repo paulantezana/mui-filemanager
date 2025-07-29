@@ -1,11 +1,15 @@
 import { useState } from "react";
 import getFileIcon from "../../helpers/fileIcon";
 
-import { DataGridPremium } from '@mui/x-data-grid-premium';
+import { DataGridPremium, useGridApiContext } from '@mui/x-data-grid-premium';
 import formatFileSize from "../../helpers/formatFileSize";
-import ContextMenu from "../../shared/components/ContextMenu";
+import ContextMenu from "./ContextMenu";
 import { Box } from "@mui/material";
 import { useSetSelectedFile } from "../../context/FileSelectionContext";
+import { useItemSelectedContext } from "../../context/ItemSelectionContext";
+import { useFileManagerContext } from "../../context/FileManagerContext";
+import { useSetFullscreenPreviewFile } from "../../context/FullscreenPreviewContext";
+import { useRef } from "react";
 
 const columns = [
   {
@@ -29,21 +33,71 @@ const columns = [
   },
 ];
 
-export const TableView = ({
-  files = [],
-  onDoubleClick,
-  onClickMenu,
-  rowSelectionModel,
-  setRowSelectionModel,
-}) => {
-  const setSelectedFile = useSetSelectedFile();
-  const [selectedRow, setSelectedRow] = useState();
+const useCustomColumns = (config) => {
+  const { customComponents } = config;
 
+  const RenderCell = ({ item, row }) => {
+    if (!item.ComponentRender) return null;
+
+    const value = row[item.key]
+    const CustomComponent = item.ComponentRender;
+
+    return (
+      <CustomComponent
+        value={value}
+        item={row}
+      />
+    );
+  };
+
+  const RenderEditCell = ({ item, params }) => {
+    const { id, value, field, hasFocus, row } = params;
+    const apiRef = useGridApiContext();
+    const ref = useRef(null);
+
+    const handleChange = (newValue) => {
+      apiRef.current.setEditCellValue({ id, field, value: newValue });
+    };
+
+    const CustomComponent = item?.ComponentEdit;
+
+    if (!CustomComponent) return null;
+
+    return (
+      <CustomComponent
+        ref={ref}
+        value={value}
+        onChange={handleChange}
+        label={item.label}
+        {...item.propsEdit}
+      />
+    );
+  };
+
+  return customComponents?.map((item) => ({
+    field: item.key,
+    headerName: item.label,
+    renderCell: ({ value, row }) => <RenderCell item={item} row={row} />,
+    // renderEditCell: (params) => <RenderEditCell item={item} params={params} />
+  })) ?? [];
+}
+
+export const TableView = () => {
+  const { manager: { currentItems, refresh }, config } = useFileManagerContext();
+  const setSelectedFile = useSetSelectedFile();
+  const { rowSelectionModel, setRowSelectionModel } = useItemSelectedContext();
+  const setFullscreenFile = useSetFullscreenPreviewFile();
+
+  const [selectedRow, setSelectedRow] = useState();
   const [contextMenu, setContextMenu] = useState(null);
 
   const handleContextMenu = (event) => {
     event.preventDefault();
-    setSelectedRow(event.currentTarget.getAttribute('data-id'));
+
+    const dataId = event.currentTarget.getAttribute('data-id');
+    const file = currentItems.find((row) => row.id === dataId);
+
+    setSelectedRow(file);
     setContextMenu(
       contextMenu === null
         ? { mouseX: event.clientX - 2, mouseY: event.clientY - 4 }
@@ -51,28 +105,29 @@ export const TableView = ({
     );
   };
 
-  const handleClose = (key = '') => {
-    setContextMenu(null);
-    if (key.length > 0) {
-      const file = files.find((row) => row.id === selectedRow);
-      onClickMenu(key, file);
-    }
-  };
-
   const handleClick = (file) => {
-    setSelectedFile(file);
+    if (file.type === 'file') {
+      setSelectedFile(file);
+    }
   }
+
+  const customColumns = useCustomColumns(config);
 
   const fullColumns = [
     ...columns,
+    ...customColumns,
   ];
+
+  const onDoubleClick = (file) => {
+    setFullscreenFile(file);
+  }
 
   return (<>
     <Box sx={{ width: '100%' }} >
       <DataGridPremium
         density="compact"
         columns={fullColumns}
-        rows={files}
+        rows={currentItems}
 
         // Layout
         rowHeight={25}
@@ -101,7 +156,8 @@ export const TableView = ({
     </Box>
     <ContextMenu
       contextMenu={contextMenu}
-      onClose={handleClose}
+      onClose={() => setContextMenu(null)}
+      selectedRow={selectedRow}
     />
   </>)
 }

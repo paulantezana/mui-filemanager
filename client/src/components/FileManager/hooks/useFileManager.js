@@ -9,7 +9,7 @@ class ClientDataSourceManager {
   async loadData(dataSource, forceRefresh = false) {
     if (!this.isLoaded || forceRefresh) {
       let data;
-      
+
       if (Array.isArray(dataSource)) {
         data = dataSource;
       } else if (typeof dataSource === 'function') {
@@ -17,16 +17,16 @@ class ClientDataSourceManager {
       } else {
         data = [];
       }
-      
+
       this.treeData = data ?? [];
       this.isLoaded = true;
     }
-    
+
     return this.treeData;
   }
 
   getDataByPath(path) {
-    const pathArray = path.split('/').filter(segment => 
+    const pathArray = path.split('/').filter(segment =>
       segment && segment.toUpperCase() !== 'INICIO'
     );
 
@@ -35,19 +35,19 @@ class ClientDataSourceManager {
     }
 
     let currentLevel = this.treeData;
-    
+
     for (const pathSegment of pathArray) {
-      const found = currentLevel.find(item => 
+      const found = currentLevel.find(item =>
         item.type === 'folder' && item.name === pathSegment
       );
-      
+
       if (found && found.children) {
         currentLevel = found.children;
       } else {
         return [];
       }
     }
-    
+
     return currentLevel;
   }
 
@@ -58,13 +58,14 @@ class ClientDataSourceManager {
 }
 
 const useFileManager = ({ operations, folderModel }) => {
+
   const [currentItems, setCurrentItems] = useState([]);
   const [dataSource, setDataSource] = useState([]);
   const [pathHistory, setPathHistory] = useState([{ name: 'Inicio', data: [] }]);
   const [refreshData, setRefreshData] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState(false);
-  
+
   const [clientManager] = useState(() => new ClientDataSourceManager());
 
   useEffect(() => {
@@ -76,7 +77,7 @@ const useFileManager = ({ operations, folderModel }) => {
       try {
         setLoading(true);
         setErrors(false);
-        
+
         const path = '/' + pathHistory
           .filter(item => item.name.toUpperCase() !== 'INICIO')
           .map(item => item.name)
@@ -92,7 +93,7 @@ const useFileManager = ({ operations, folderModel }) => {
         } else {
           files = await list(path);
         }
-        
+
         setNormalized(files);
       } catch (ex) {
         setErrors(ex.message);

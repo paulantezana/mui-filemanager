@@ -89,16 +89,18 @@ const ManagerCustom = ({ onClose }) => {
     {
       key: 'description',
       label: 'Descripción',
-      Component: DescriptionInput,
-      props: {
+      ComponentEdit: DescriptionInput,
+      ComponentRender: ({ value, item }) => <i>{item.description}</i>,
+      propsEdit: {
         placeholder: 'Describe el archivo...'
       }
     },
     {
       key: 'category',
       label: 'Categoría',
-      Component: CategorySelect,
-      props: {
+      ComponentEdit: CategorySelect,
+      ComponentRender: ({ value, item }) => <i>{item.category}</i>,
+      propsEdit: {
         options: [
           { value: 'document', label: 'Documento' },
           { value: 'image', label: 'Imagen' },
@@ -110,8 +112,9 @@ const ManagerCustom = ({ onClose }) => {
     {
       key: 'priority',
       label: 'Prioridad',
-      Component: PrioritySelector,
-      props: {
+      ComponentEdit: PrioritySelector,
+      ComponentRender: ({ value, item }) => <i>{item.priority}</i>,
+      propsEdit: {
         colors: [
           { value: 'low', label: 'Baja', color: '#4CAF50' },
           { value: 'medium', label: 'Media', color: '#FF9800' },

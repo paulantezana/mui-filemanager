@@ -11,11 +11,13 @@ const FileManager = ({
 }) => {
   return (
     <ContextManager
-      operations={operations}
-      acceptPairs={acceptPairs}
-      permissions={permissions}
-      folderModel={folderModel}
-      customComponents={customComponents}
+      config={{
+        operations,
+        acceptPairs,
+        permissions,
+        folderModel,
+        customComponents,
+      }}
     >
       <Manager />
     </ContextManager>

@@ -1,20 +1,18 @@
 import { useState } from "react";
-import ContextMenu from "../../shared/components/ContextMenu";
+import ContextMenu from "./ContextMenu";
 import { Checkbox } from "@mui/material";
 import { useSetSelectedFile } from "../../context/FileSelectionContext";
 import FileViewer from "../../shared/components/FileViewer";
+import { useItemSelectedContext } from "../../context/ItemSelectionContext";
+import { useFileManagerContext } from "../../context/FileManagerContext";
+import useFileOperation from "../../hooks/useFileOperation";
+import { useSetFullscreenPreviewFile } from "../../context/FullscreenPreviewContext";
 
-const ViewCell = ({ file, onCheked, onDoubleClick, onContextMenu, checked, loadFile }) => {
-  const setSelectedFile = useSetSelectedFile();
-
-  const handleClick = () => {
-    setSelectedFile(file);
-  }
-
+const ViewCell = ({ file, onClick, onCheked, onDoubleClick, onContextMenu, checked, loadFile }) => {
   return (
     <div
       className="thumbnail-wrapper"
-      onClick={handleClick}
+      onClick={() => onClick(file)}
       onDoubleClick={() => onDoubleClick(file)}
       onContextMenu={(event) => onContextMenu(event, file)}
     >
@@ -37,19 +35,44 @@ const ViewCell = ({ file, onCheked, onDoubleClick, onContextMenu, checked, loadF
   );
 }
 
-export const FileGridView = ({
-  files = [],
-  onDoubleClick,
-  onClickMenu,
-  rowSelectionModel,
-  setRowSelectionModel,
-  operations,
-}) => {
-  const [selectedRow, setSelectedRow] = useState();
+export const FileGridView = () => {
+  // Global states
+  const { rowSelectionModel, setRowSelectionModel } = useItemSelectedContext();
+  const { manager: { currentItems } } = useFileManagerContext();
+  const setSelectedFile = useSetSelectedFile();
+  const { loadFile } = useFileOperation()
+  const setFullscreenFile = useSetFullscreenPreviewFile();
 
+  // Local states
+  const [selectedRow, setSelectedRow] = useState();
   const [contextMenu, setContextMenu] = useState(null);
 
-  const handleContextMenu = (event, file) => {
+  // Cell actions
+  const handleClick = (file) => {
+    if (file.type === 'file') {
+      setSelectedFile(file);
+    }
+  }
+
+  const handleCheked = (event, file) => {
+    const checked = event.target.checked;
+    let ids = [...rowSelectionModel];
+    if (checked) {
+      if (!ids.includes(file.id)) {
+        ids.push(file.id);
+      }
+    } else {
+      ids = ids.filter(id => id !== file.id);
+    }
+    setRowSelectionModel(ids);
+  }
+
+  const onDoubleClick = (file) => {
+    setFullscreenFile(file);
+  }
+
+  // Context menu options
+  const handleContextMenuOpen = (event, file) => {
     event.preventDefault();
     setSelectedRow(file);
 
@@ -76,41 +99,15 @@ export const FileGridView = ({
     }
   };
 
-  const handleClose = (key = '') => {
-    setContextMenu(null);
-    if (key.length > 0) {
-      onClickMenu(key, selectedRow);
-    }
-  };
-
-  const handleCheked = (event, file) => {
-    const checked = event.target.checked;
-    let ids = [...rowSelectionModel];
-    if (checked) {
-      if (!ids.includes(file.id)) {
-        ids.push(file.id);
-      }
-    } else {
-      ids = ids.filter(id => id !== file.id);
-    }
-    setRowSelectionModel(ids);
-  }
-
-  const loadFile = async (file) => {
-    const blob = await operations.load(file);
-    return blob;
-  }
-
-
   return (<>
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: '.25rem' }}>
-      {files.map((file, index) => (
+      {currentItems.map((file, index) => (
         <ViewCell
           key={index}
-          showDetail={true}
           file={file}
+          onClick={handleClick}
           onCheked={handleCheked}
-          onContextMenu={handleContextMenu}
+          onContextMenu={handleContextMenuOpen}
           onDoubleClick={onDoubleClick}
           checked={rowSelectionModel.includes(file.id)}
           loadFile={loadFile}
@@ -119,7 +116,8 @@ export const FileGridView = ({
     </div>
     <ContextMenu
       contextMenu={contextMenu}
-      onClose={handleClose}
+      onClose={() => setContextMenu(null)}
+      selectedRow={selectedRow}
     />
   </>)
 }

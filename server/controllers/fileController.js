@@ -4,6 +4,12 @@ const mime = require('mime-types');
 
 const basePath = path.join(__dirname, '..', 'uploads');
 
+
+function getRandomValue(values) {
+  const randomIndex = Math.floor(Math.random() * values.length);
+  return values[randomIndex];
+}
+
 async function buildNode(item, currentPath, relativePath) {
   const fullPath = path.join(currentPath, item.name);
   const relPath = path.posix.join(relativePath, item.name);
@@ -17,7 +23,11 @@ async function buildNode(item, currentPath, relativePath) {
     createdAt: stats.birthtime,
     updatedAt: stats.mtime,
     mimeType: item.isDirectory() ? null : mime.lookup(fullPath) || 'application/octet-stream',
-    path: relPath
+    path: relPath,
+
+    description: !item.isDirectory() ? 'Description ' + item.name : '',
+    category: !item.isDirectory() ? getRandomValue(['document', 'image', 'video', 'other']) : '',
+    priority: !item.isDirectory() ? getRandomValue(['low', 'medium', 'high']) : '',
   };
 
   return node;

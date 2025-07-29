@@ -2,30 +2,24 @@ import { FileSelectionProvider } from './FileSelectionContext';
 import { FullscreenPreviewProvider } from './FullscreenPreviewContext';
 import { DisplayModeProvider } from './DisplayModeContext';
 import { FileManagerProvider } from './FileManagerContext';
+import { ItemSelectionProvider } from './ItemSelectionContext';
 
 const ContextManager = ({
   children,
-  operations = {},
-  acceptPairs = [],
-  permissions = [],
-  folderModel = 'server', // server || client
-  customComponents = [],
+  config,
 }) => {
+  console.log('ContextManager');
   return (
-    <FileManagerProvider
-      operations={operations}
-      acceptPairs={acceptPairs}
-      permissions={permissions}
-      folderModel={folderModel}
-      customComponents={customComponents}
-    >
-      <FileSelectionProvider>
-        <FullscreenPreviewProvider>
-          <DisplayModeProvider>
-            {children}
-          </DisplayModeProvider>
-        </FullscreenPreviewProvider>
-      </FileSelectionProvider>
+    <FileManagerProvider config={config}>
+      <ItemSelectionProvider>
+        <FileSelectionProvider>
+          <FullscreenPreviewProvider>
+            <DisplayModeProvider>
+              {children}
+            </DisplayModeProvider>
+          </FullscreenPreviewProvider>
+        </FileSelectionProvider>
+      </ItemSelectionProvider>
     </FileManagerProvider>
   );
 };

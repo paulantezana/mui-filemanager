@@ -6,13 +6,19 @@ import { Button } from "@mui/material";
 
 import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
+import CloseIcon from '@mui/icons-material/Close';
+
 import { useFileManagerContext } from "../../context/FileManagerContext";
+import { useItemSelectedContext } from "../../context/ItemSelectionContext";
 
 const Toolbar = () => {
-  const { operations, manager, acceptPairs, customComponents, rowSelectionModel } = useFileManagerContext();
+  const { manager, config } = useFileManagerContext();
+  const { rowSelectionModel, setRowSelectionModel } = useItemSelectedContext();
+
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [files, setFiles] = useState([]);
-  const { refresh, pathHistory } = manager;
+  const { refresh, pathHistory, currentItems } = manager;
+  const { operations, acceptPairs, customComponents } = config;
 
   const onFileChange = (files) => {
     setFiles(files);
@@ -31,19 +37,23 @@ const Toolbar = () => {
   }
 
   const handleMultipleDownload = async () => {
-    // debugger;
-    // for (let i = 0; i < rowSelectionModel.length; i++) {
-    //   const file = currentItems.find(r => r.id === rowSelectionModel[i]);
-    //   await download(file);
-    // }
+    for (let i = 0; i < rowSelectionModel.length; i++) {
+      const file = currentItems.find(r => r.id === rowSelectionModel[i]);
+      await download(file);
+    }
+    refresh();
   }
 
   const handleMultipleDelete = async () => {
-    // debugger;
-    // for (let i = 0; i < rowSelectionModel.length; i++) {
-    //   const file = currentItems.find(r => r.id === rowSelectionModel[i]);
-    //   await handleDelete(file);
-    // }
+    for (let i = 0; i < rowSelectionModel.length; i++) {
+      const file = currentItems.find(r => r.id === rowSelectionModel[i]);
+      await handleDelete(file);
+    }
+    refresh();
+  }
+
+  const handleClearSelected = () => {
+    setRowSelectionModel([]);
   }
 
   return (<div className="flex justify-between items-center">
@@ -53,16 +63,22 @@ const Toolbar = () => {
         multiple={true}
         acceptPairs={acceptPairs}
       />
-      {/* <Button size="small" startIcon={<DeleteIcon />} onClick={handleMultipleDelete} >
+      <Button size="small" startIcon={<DeleteIcon />} onClick={handleMultipleDelete} >
         Eliminar
       </Button>
       <Button size="small" startIcon={<DownloadIcon />} onClick={handleMultipleDownload}>
         Descargar
-      </Button> */}
-      {confirmOpen && <UploadConfirm onClose={handleConfirmClose} files={files} onUpload={handleUpload} customComponents={customComponents} />}
+      </Button>
+      {
+        confirmOpen && <UploadConfirm
+          onClose={handleConfirmClose}
+          files={files}
+          onUpload={handleUpload}
+          customComponents={customComponents}
+        />}
     </div>
     <div className="flex items-center">
-      {rowSelectionModel.length > 0 ? (rowSelectionModel.length + ' selecionado') : ''}
+      {(rowSelectionModel.length > 0) && <Button size="small" onClick={handleClearSelected} endIcon={<CloseIcon />} >{rowSelectionModel.length} selecionados</Button>}
       <ToggleViewMode />
     </div>
   </div>);

@@ -6,15 +6,45 @@ import DownloadIcon from '@mui/icons-material/Download';
 import OpenInFullIcon from '@mui/icons-material/OpenInFull';
 import { useSetFullscreenPreviewFile } from "../context/FullscreenPreviewContext";
 import { useSelectedFile } from "../context/FileSelectionContext";
-import { useFileManagerContext } from "../context/FileManagerContext";
 import FileViewer from "../shared/components/FileViewer";
+import useFileOperation from "../hooks/useFileOperation";
+import { useFileManagerContext } from "../context/FileManagerContext";
+
+const ComponentRenderer = ({ config, item }) => {
+  if (!config.ComponentRender) return null;
+
+  const value = item[config.key]
+  const CustomComponent = config.ComponentRender;
+
+  return (
+    <div style={{ minWidth: '12rem' }}>
+      <CustomComponent
+        value={value}
+        item={item}
+      />
+    </div>
+  );
+};
+
+const CustomComponentRender = ({ item }) => {
+  const { config } = useFileManagerContext();
+  const { customComponents } = config;
+
+  return (<>
+    {customComponents.map((config) => (
+      <ComponentRenderer
+        key={config.key}
+        config={config}
+        item={item}
+      />
+    ))}
+  </>)
+}
 
 const RightPanel = () => {
-  const { operations, download } = useFileManagerContext()
+  const { dowloandFile, loadFile } = useFileOperation();
   const setFile = useSetFullscreenPreviewFile();
   const selectedFile = useSelectedFile();
-
-  const loadFile = async (file) => await operations.load(file);
 
   const handleFullScreen = (file) => {
     setFile(file);
@@ -29,9 +59,10 @@ const RightPanel = () => {
         <div>{selectedFile.name}</div>
       </div>
 
-      <FileViewer file={selectedFile} loadFile={loadFile}/>
+      <FileViewer file={selectedFile} loadFile={loadFile} />
 
       <div>
+        <CustomComponentRender item={selectedFile} />
         <div>
           <strong>Tamaño:</strong> {formatFileSize(selectedFile.size)}
         </div>
@@ -42,7 +73,7 @@ const RightPanel = () => {
           <Button size="small" onClick={() => handleFullScreen(selectedFile)} variant="outlined" startIcon={<OpenInFullIcon />}>
             Ver completo
           </Button>
-          <Button size="small" onClick={() => download(selectedFile)} variant="outlined" startIcon={<DownloadIcon />}>
+          <Button size="small" onClick={() => dowloandFile(selectedFile)} variant="outlined" startIcon={<DownloadIcon />}>
             Descargar
           </Button>
         </div>

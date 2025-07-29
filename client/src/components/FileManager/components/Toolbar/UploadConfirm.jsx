@@ -16,16 +16,16 @@ const ComponentRenderer = ({ config, value, onChange }) => {
     onChange(config.key, newValue);
   };
 
-  if (!config.Component) return null;
+  if (!config.ComponentEdit) return null;
 
-  const CustomComponent = config.Component;
+  const CustomComponent = config.ComponentEdit;
   return (
     <div style={{ minWidth: '12rem' }}>
       <CustomComponent
         value={value}
         onChange={handleChange}
         label={config.label}
-        {...config.props}
+        {...config.propsEdit}
       />
     </div>
   );
